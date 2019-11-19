@@ -8,7 +8,7 @@ from inputButton import inputButton
 from ProcessScreen import ProcessScreen
 from SettingsScreen import SettingsScreen
 #Equipment
-from Valve import Valve,gateValveOnly,MKS153D
+from Valve import Valve,gateValveOnly,MKS153D,VAT
 from ArduinoMegaPLC import ArduinoMegaPLC
 
 from Motor_Control import ArduinoMotor
@@ -320,11 +320,11 @@ class goBetween():
         if self.ParameterDictionary['valveOpen']: #If the button press activates the valve
             #need a way of identifying which baratron to use...
             if float(self.BaratronList[0].currentRead) > float(self.BaratronList[0].max): #soft open condition
-                #Create_Thread(softOpen,)
-                Open() #this is a thread for certain types of gate valves
+                Create_Thread(softOpen,)
+                #Open() #this is a thread for certain types of gate valves
             else: #regular open condition
-                #Create_Thread(Open,)
-                softOpen() #thi
+                Create_Thread(Open,)
+                #softOpen() #thi
 
 
         else: #if the button click is intented to close the valve.
@@ -414,11 +414,11 @@ sm.add_widget(SettingsScreen)
 sm.current = 'main'
 
 #read from the CSV file
-df = pd.read_csv('C:\\Users\peter\Swift Coat Dropbox\Engineering\Software\Interface Work File\SettingsVIII.csv')
+df = pd.read_csv('C:\\Users\HolmanLab\Desktop\SettingsVIII.csv')
 
 #need a way to add these comports into the settings excel file....
-PLC = ArduinoMegaPLC(8)
-StepperController = ArduinoMotor(10)
+PLC = ArduinoMegaPLC(4)
+StepperController = ArduinoMotor(3)
 
 comDic = {} #holds the comport number and the corresponding serial port object
 MFCList = [] #holds the MFC objects
@@ -481,8 +481,8 @@ for row in df.iterrows(): #iterate through each row of the excel file and adds i
 
             gateValve = MKS153D(r['Com'],r['max'])
 
-        if r['title'] == 'whatever the VAT model numebr is':
-            pass
+        if r['title'] == 'VAT':
+            gateValve = VAT(r['Com'])
 
     if r['type'] == 'AnalogBaratron':
         instrument = analogBaratron(PLC,int(r['read address']),r['min'],r['max'],r['slot'])

@@ -69,7 +69,7 @@ class ArduinoMotor():
 
     def updateSingleStepRecipe(self):
         a = '<1,2,1,'+self.DataDic['start']+',500,1,0,'
-        b = '1,'+ str(int(self.DataDic['stop'])-int(self.DataDic['start']))+ ','+self.DataDic['speed']+','+ self.DataDic['swipes'] +',0>'
+        b = '0,'+ str(int(self.DataDic['stop'])-int(self.DataDic['start']))+ ','+self.DataDic['speed']+','+ self.DataDic['swipes'] +',0>'
 
         #a = '<1,2,'+str(self.DataDic['start'])+',' + self.DataDic['stop'] +',' + self.DataDic['speed']+','+ self.DataDic['swipes'] +',0>'
         a = a+b

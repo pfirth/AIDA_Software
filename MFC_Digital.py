@@ -248,14 +248,14 @@ class HoribaDigitalMFC():
 
 if __name__ == '__main__':
     t = time.time()
-    DeppyNozzle = HoribaDigitalMFC(16)
+    DeppyNozzle = HoribaDigitalMFC(5)
     #print(DeppyNozzle.readFullScaleFlowRate('3032'))
     #print(DeppyNozzle.readDetectedFlowrate2('3032'))
     #time.sleep(1)
     while 1:
-        print(DeppyNozzle.readDetectedFlowrate2('3031'))
+        #print(DeppyNozzle.readDetectedFlowrate2('3031'))
+        #print(DeppyNozzle.readDetectedFlowrate2('3032'))
         print(DeppyNozzle.readDetectedFlowrate2('3032'))
-        print(DeppyNozzle.readDetectedFlowrate2('3033'))
 
     #    time.sleep(0.1)
     #DeppyNozzle.Home()

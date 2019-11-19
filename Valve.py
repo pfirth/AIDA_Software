@@ -157,6 +157,160 @@ class Valve():
         self.connection.write(b'L: 00030000\r\n')
         return self.__receivedata(False,'')
 
+class VAT():
+
+    def __init__(self,port):
+        '''Initialization requires that the port number of the 4-port USB to serial
+        adapter be input (A,B,C,D) to start. This will be changed to work with different
+        computers.
+
+        Interacting with a Vat Valve via the service port.
+        '''
+        self.connection = serial.Serial('COM' + str(port),baudrate=9600,
+                                        bytesize=serial.SEVENBITS,stopbits = serial.STOPBITS_ONE,
+                                        parity=serial.PARITY_EVEN)
+        self.interrupt = False
+        self.DataDic = {}
+
+    def __receivedata(self,confirm,confirmcommand):
+        if confirm:
+            while True:
+                if self.connection.in_waiting >0:
+                    rec =  str(self.connection.readline(),"utf-8").strip()
+                    if rec == confirmcommand:
+                        print(rec)
+                        break
+        else:
+            a = str(self.connection.readline(),"utf-8").strip()
+            return a
+
+
+    def getSensorConfiguration(self):
+        self.connection.write(b'i:01\r\n')
+
+        return self.__receivedata(False,'')
+
+    def setSensorScale(self,maxSensorReadTorr):
+        start = 's:01'
+        a = '1'
+        b = '0'
+        c = maxSensorReadTorr
+
+        #adding leading zeros to fit the 6 figure format on manual pg 63
+        zeroAdd = 6 -len(c)
+        for x in range(zeroAdd):
+            c = '0'+c
+        command = str.encode(start+a+b+c+'\r\n',"utf-8")
+        self.connection.write(command)
+        return self.__receivedata(False,'')
+
+    def getSensorScale(self):
+        self.connection.write(b'i:01\r\n')
+        return self.__receivedata(False,'')
+
+    def setSensorRange(self,range):
+        start = 's:21'
+        a = '2'
+        b = range
+        zeroAdd = 7 -len(b)
+        b = '0'*zeroAdd + b
+
+        command = str.encode(start+a + b + '\r\n',"utf-8")
+
+        self.connection.write(command)
+
+        return self.__receivedata(False,' ')
+
+    def __Pressure_Conversion(self,P):
+        '''converts a pressure in Torr to the appropriate ASII
+        command'''''
+        command = str(int(P*500000))
+        #print command,P
+        for x in range(7-len(command)):
+            command = '0'+command
+        #print command
+        return 'S:0'+ command
+
+    def getPressureSetpoint(self):
+        self.connection.write(b'i:38\r\n')
+        return self.__receivedata(False,'')
+
+    def setPressure(self,slot,Pressure):
+        '''Sends the pressure setpoint to the valve
+        Pressure should be supplied in mTorr'''
+        self.DataDic[slot]['currentSet'] = Pressure
+
+        start = 'S:0'
+        a = Pressure
+
+        zeroAdd = 7 - len(a)
+
+        a = '0'*zeroAdd + a
+        print(start+a)
+        command = str.encode(start+a+'\r\n',"utf-8")
+
+        self.connection.write(command)
+
+        return self.__receivedata(False,'')
+
+    def pressureControlStatus(self):
+
+        self.connection.write(b'i:36\r\n')
+        return self.__receivedata(False,'')
+
+    def getPosition(self):
+        self.connection.write(b'A:\r\n')
+        return self.__receivedata(False,'')
+
+    def getPressure(self):
+        self.connection.write(b'P:\r\n')
+        ret = self.__receivedata(False,'')
+        ret = ret.split(':')[1]
+
+        for key in self.DataDic.keys():
+            dic = self.DataDic[key]
+            dic['currentRead'] = str(int(ret))
+
+        return str(int(ret))
+
+    def Open(self):
+        '''This function sets the valve to it's fully open position'''
+        self.connection.write(b'O:\r\n')
+        self.__receivedata(True,'O:')
+
+    def Close(self):
+        '''This function closes the valve'''
+        self.connection.write(b'C:\r\n')
+        self.__receivedata(True,'C:')
+
+    def softOpen(self):
+        '''This function slowly opens the gate valve as to not cause
+        any damage to critical parts of of the system'''
+        x = -400
+        step = 425 #Valve step size
+        self.connection.write(b'R:000050\r\n') #setting the initial position
+        time.sleep(5)
+        self.interrupt = False #in case it was previously interrupted.
+        while x <= 12000 and not self.interrupt:
+            if self.interrupt:
+                print("interuppted")
+                return 0
+            else: #If a command with higher priority is entered, this loop quits
+                y = '0'
+                x +=int(step)
+                command = str.encode('R:'+ (6 - len(str(x)))*y + str(x) +'\r\n')
+                self.connection.write(command) #Stepping the valve open
+                time.sleep(0.4) #break between command sets
+
+        if self.interrupt:
+            pass
+        else:
+            self.Open()#once the valve has been opened to position 12000, the valve fully opens
+
+    def Learn(self):
+        self.connection.write(b'L: 00030000\r\n')
+        return self.__receivedata(False,'')
+
 class MKS153D():
 
     def __init__(self,port,maxPressure):
@@ -316,7 +470,6 @@ class MKS153D():
         self.connection.write(b'L: 00030000\r\n')
         return self.__receivedata(False,'')
 
-
 class gateValveOnly():
     def __init__(self,pneumaticController,openChannel,closeChannel):
         self.pneumaticController = pneumaticController
@@ -370,7 +523,7 @@ class gateValveOnly():
     time.sleep(0.25)'''
 
 if __name__ == '__main__':
-    X = Valve(35)
+    X = Valve(8)
     X.Open()
     time.sleep(2)
     X.Close()

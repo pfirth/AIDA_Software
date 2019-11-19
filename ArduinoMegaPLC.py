@@ -186,62 +186,42 @@ class ArduinoMegaPLC(SerialDevice):
         self.updateRelayBank()
 
 if __name__ == '__main__':
-    A = ArduinoMegaPLC(8)
+    A = ArduinoMegaPLC(4)
 
-    def openGateValve():
-        A.relayCurrent = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-        A.updateRelayBank()
-        time.sleep(3)
+    A.relayCurrent =  ['1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1']
+    A.updateRelayBank()
 
-        A.relayCurrent = [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-        A.updateRelayBank()
-        time.sleep(1)
+    #MFCs running
+        #2 additional pneumatic valves
+        #Casings on the Solenoid cable
+        #Order 1/8" plastic tubing
+        #Run tubing to pneumatics
+        #mount the solenoid pack
+        #run power cables to MFCs
+        #Make the Rs232 to RJ485 converter
+        #run ethernet to MFCs
+        #install Horiba software on computer
 
-        A.relayCurrent = [1,1,1,1,1 ,1,1,1,1,1,1,1,1,1,1,1,1]
-        A.updateRelayBank()
+    #Baratron
+        #Find baratron for D.Chamber
+        #find baratron for R.Chamber
+        #Cable from R.chamber to cart
 
-        time.sleep(1)
+    #R. Chamber
+        #Print standoffs for push holders (4)
+        # Matching network
+            #Al Box
+            #motors
+            #capacitors & inductors
+            #control card
 
-        A.relayCurrent = [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-        A.updateRelayBank()
-        time.sleep(1)
+    #RF Generator
+        #Make a cable
+        #mount on rack
+        #RF cable
 
-        A.relayCurrent = [1,1,1,1,1 ,1,1,1,1,1,1,1,1,1,1,1,1]
-        A.updateRelayBank()
-
-
-        '''A.relayCurrent = [1,1,1,1,1 ,1,1,1,1,1,1,1,1,1,1,1,1]
-        A.updateRelayBank()
-        A.relayCurrent = [0,1,1,1,1 ,1,1,1,1,1,1,1,1,1,1,1,1]
-        A.updateRelayBank()'''
-
-    def closeGateValve():
-        A.relayCurrent = [1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1]
-        A.updateRelayBank()
-
-
-    closeGateValve()
-    #time.sleep(3)
-    #openGateValve()
-
-    #A.relayCurrent = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-    #A.updateRelayBank()
-
-    srt = A.getAnalogData()
-    Starttime = time.time()
-    while True:
-        current = A.getAnalogData()
-        currentTime = time.time()
-        RORO = (current-srt)/(((currentTime-Starttime)/1000)*60)
-
-        print(srt,current,RORO)
-        time.sleep(0.1)
-
-    #while True:
-     #   print(A.getData())
-      #  time.sleep(0.1)'''
-
-
-
-
-
+    #Software
+        #max/min positions on motor
+        #max/min speed
+        #speed in mm/s
+        #Relevant states for different tools
