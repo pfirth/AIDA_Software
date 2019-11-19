@@ -511,16 +511,6 @@ class gateValveOnly():
         self.pneumaticController.relayCurrent[self.closeChannel] = 0
         self.pneumaticController.updateRelayBank()
 
-'''def ROR(X,startPressure):
-    pNow = X.getPressure()
-    print("Pressure: " + pNow)
-
-    timeNow = time.time()
-    timeEllapsed = (timeNow - start)/60
-    ROR = (int(pNow) - startPressure)/timeEllapsed
-
-    print("ROR: " + str(ROR) + " Time: " + str(timeEllapsed))
-    time.sleep(0.25)'''
 
 if __name__ == '__main__':
     X = Valve(8)
