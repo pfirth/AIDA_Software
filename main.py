@@ -414,7 +414,7 @@ sm.add_widget(SettingsScreen)
 sm.current = 'main'
 
 #read from the CSV file
-df = pd.read_csv('C:\\Users\peter\Swift Coat Dropbox\Engineering\Software\Interface Work File\SettingsVIII.csv')
+df = pd.read_csv('SettingsFile.csv')
 
 #need a way to add these comports into the settings excel file....
 PLC = ArduinoMegaPLC(8)
