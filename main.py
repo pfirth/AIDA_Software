@@ -375,12 +375,19 @@ class goBetween():
         #if we are opening the lid
         if self.ParameterDictionary['lidOpen']:
             self.PLC.relayCurrent[self.ParameterDictionary['Open Channel']] = '0'
-            self.PLC.relayCurrent[self.ParameterDictionary['Close Channel']] = '1'
+            try:
+                self.PLC.relayCurrent[self.ParameterDictionary['Close Channel']] = '1'
+            except KeyError: #if no close channel
+                pass
             self.PLC.updateRelayBank()
         #if we are closing the lid
         else:
             self.PLC.relayCurrent[self.ParameterDictionary['Open Channel']] = '1'
-            self.PLC.relayCurrent[self.ParameterDictionary['Close Channel']] = '0'
+            try:
+                self.PLC.relayCurrent[self.ParameterDictionary['Close Channel']] = '0'
+            except KeyError: #if no close channel
+                pass
+
             self.PLC.updateRelayBank()
             #put the lid button to normal
             self.processScreen.lidLiftButton.state = 'normal'
@@ -417,8 +424,8 @@ sm.current = 'main'
 df = pd.read_csv('SettingsFile.csv')
 
 #need a way to add these comports into the settings excel file....
-PLC = ArduinoMegaPLC(8)
-StepperController = ArduinoMotor(10)
+PLC = ArduinoMegaPLC(10)
+StepperController = ArduinoMotor(11)
 
 comDic = {} #holds the comport number and the corresponding serial port object
 MFCList = [] #holds the MFC objects
@@ -472,6 +479,7 @@ for row in df.iterrows(): #iterate through each row of the excel file and adds i
         ParameterDictionary[r['title']] = int(r['relay address'])
 
     if r['type'] == 'GateValve':
+        print(r['read address'])
         gateValve = gateValveOnly(PLC,int(r['read address'].split(',')[0]),
                             int(r['read address'].split(',')[1]))
 
