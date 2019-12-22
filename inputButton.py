@@ -1,5 +1,6 @@
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
+from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
@@ -23,15 +24,42 @@ class inputButton(Button):
             self.min = 0
 
         self.text = '0'
+        self.popUpBoxLayout = BoxLayout(orientation = 'vertical')
+
         self.popUpGrid = GridLayout(cols = 0, rows = 2)
+
+        self.popUpTextBox = BoxLayout(size_hint = (1,0.25))
         self.popUpTextInput = TextInput(font_size = 35,multiline=False)
-        self.popUpButton = Button(text = 'Press to Confirm')
-        self.popUpGrid.add_widget(self.popUpTextInput)
-        self.popUpGrid.add_widget(self.popUpButton)
+        self.popUpTextBox.add_widget(self.popUpTextInput)
+
+        self.popUpButtonBox = BoxLayout(size_hint = (1,0.75))
+
+        #Number Grid
+        self.numberGrid = GridLayout(rows = 4, cols = 3)
+        for i in range(10):
+            numberButton = Button(text = str(i))
+            numberButton.bind(on_press = self.updateText)
+            self.numberGrid.add_widget(numberButton)
+
+        self.clear_button = Button(text ='Clear')
+        self.clear_button.bind(on_press = self.updateText)
+        self.numberGrid.add_widget(self.clear_button)
+
+        self.popUpButton = Button(text = 'Confirm')
+        self.numberGrid.add_widget(self.popUpButton)
+
+
+        self.popUpButtonBox.add_widget(self.numberGrid)
+
+        #self.popUpGrid.add_widget(self.popUpTextInput)
+        #self.popUpGrid.add_widget(self.popUpButton)
+
+        self.popUpBoxLayout.add_widget(self.popUpTextBox)
+        self.popUpBoxLayout.add_widget(self.popUpButtonBox)
 
 
         self.popupField = Popup(title='Test popup',
-        content=self.popUpGrid,size_hint=(None, None), size=(400, 200),
+        content=self.popUpBoxLayout,size_hint=(None, None), size=(400, 600),
                                 auto_dismiss = False)
 
         self.popupField.bind(on_open = self.focusText)
@@ -41,6 +69,13 @@ class inputButton(Button):
         self.bind(on_press = partial(self.openPopup))
 
         self.wasUpdated = False
+
+    def updateText(self,button):
+        if button.text == 'Clear':
+            self.popUpTextInput.text = ''
+        else:
+            self.popUpTextInput.text = self.popUpTextInput.text + button.text
+
 
     def getText(self):
         return self.text
