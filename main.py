@@ -320,11 +320,11 @@ class goBetween():
         if self.ParameterDictionary['valveOpen']: #If the button press activates the valve
             #need a way of identifying which baratron to use...
             if float(self.BaratronList[0].currentRead) > float(self.BaratronList[0].max): #soft open condition
-                #Create_Thread(softOpen,)
-                Open() #this is a thread for certain types of gate valves
+                Create_Thread(softOpen,)
+                #Open() #this is a thread for certain types of gate valves
             else: #regular open condition
                 #Create_Thread(Open,)
-                softOpen() #thi
+                Open() #thi
 
 
         else: #if the button click is intented to close the valve.
@@ -425,7 +425,7 @@ df = pd.read_csv('SettingsFile.csv')
 
 #need a way to add these comports into the settings excel file....
 PLC = ArduinoMegaPLC(10)
-StepperController = ArduinoMotor(11)
+StepperController = ArduinoMotor(15)
 
 comDic = {} #holds the comport number and the corresponding serial port object
 MFCList = [] #holds the MFC objects
@@ -434,7 +434,7 @@ BaratronList = [] #holds baratron objects
 
 for row in df.iterrows(): #iterate through each row of the excel file and adds in the right comonent.
     r = row[1]
-
+    print(r['type'])
     if r['type'] == 'HoribaZ500':
         try: #check if the desired comport has been opened
             MFCconnection = comDic[r['Com']]
