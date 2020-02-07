@@ -8,7 +8,7 @@ from inputButton import inputButton
 from ProcessScreen import ProcessScreen
 from SettingsScreen import SettingsScreen
 #Equipment
-from Valve import Valve,gateValveOnly,MKS153D
+from Valve import Valve,gateValveOnly,MKS153D,VAT
 from ArduinoMegaPLC import ArduinoMegaPLC
 
 from Motor_Control import ArduinoMotor
@@ -146,6 +146,7 @@ class goBetween():
             self.getReadAndUpdateLabels()
             self.motorProcesses()
             self.updateGrinder()
+            self.updatePressure()
 
             #reverse condition
             if self.ParameterDictionary['valveStateChange']: #was the valve button clicked?
@@ -173,6 +174,7 @@ class goBetween():
             self.updateMFCSetpoints()
             self.motorProcesses()
             self.updateGrinder()
+            self.updatePressure()
 
             #reverse condition
             if self.ParameterDictionary['gasStateChange']:
@@ -201,6 +203,7 @@ class goBetween():
             self.updateRFGenSetpoints()
             self.motorProcesses()
             self.updateGrinder()
+            self.updatePressure()
 
             #reverse condition
             if self.ParameterDictionary['RFStateChange']:
@@ -209,6 +212,30 @@ class goBetween():
                     self.processScreen.addStateButton('gas')
                     self.turnOffRFGen()
                     self.currentState = 2
+
+    def updatePressure(self):
+        slot = self.BaratronList[1].slot
+        #print(self.BaratronList[1].slot,self.BaratronList[1].currentRead)
+        field = self.inputFieldList[slot]
+
+        if self.currentState >=2: #if we are in a state where we want to control
+            if float(self.gateValve.pressureSetPoint) != float(field.getSetValue()): #if the set point has not been updated
+                self.gateValve.setPressure(field.getSetValue()) #update the setpoint and have it start controlling
+                self.gateValve.controlling = True
+        else:
+            if self.gateValve.controlling:
+                self.gateValve.Open()
+                self.gateValve.pressureSetPoint = '0'
+                self.gateValve.controlling = False
+
+
+
+        '''if self.currentState >= 2: #if in a state where we want the valve to control
+            if not self.gateValve.controlling:#if the gate valve is not currently controlling
+                self.gateValve.'''
+
+        #print(float(self.gateValve.pressureSetPoint) == float(field.getSetValue()))
+        #print(self.gateValve.pressureSetPoint,field.getSetValue())
 
     def getReadAndUpdateLabels(self):
         def MFCcurrentRead():
@@ -240,9 +267,11 @@ class goBetween():
         for b in self.BaratronList:
             field = self.inputFieldList[b.slot]
             field.setReadLabel(b.currentRead)
+
         for m in self.MFCList:
             field = self.inputFieldList[m.slot]
             field.setReadLabel(m.currentRead)
+
         for r in self.RFGeneratorList:
             field = self.inputFieldList[r.slot]
             field.setReadLabel(r.read())
@@ -425,7 +454,7 @@ df = pd.read_csv('SettingsFile.csv')
 
 #need a way to add these comports into the settings excel file....
 PLC = ArduinoMegaPLC(10)
-StepperController = ArduinoMotor(15)
+StepperController = ArduinoMotor(3)
 
 comDic = {} #holds the comport number and the corresponding serial port object
 MFCList = [] #holds the MFC objects
@@ -489,8 +518,8 @@ for row in df.iterrows(): #iterate through each row of the excel file and adds i
 
             gateValve = MKS153D(r['Com'],r['max'])
 
-        if r['title'] == 'whatever the VAT model numebr is':
-            pass
+        if r['title'] == 'VAT':
+            gateValve = VAT(r['Com'])
 
     if r['type'] == 'AnalogBaratron':
         instrument = analogBaratron(PLC,int(r['read address']),r['min'],r['max'],r['slot'])
