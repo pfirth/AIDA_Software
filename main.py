@@ -8,7 +8,7 @@ from inputButton import inputButton
 from ProcessScreen import ProcessScreen
 from SettingsScreen import SettingsScreen
 #Equipment
-from Valve import Valve,gateValveOnly,MKS153D,VAT
+from Valve import Valve,gateValveOnly,MKS153D
 from ArduinoMegaPLC import ArduinoMegaPLC
 
 from Motor_Control import ArduinoMotor
@@ -323,8 +323,8 @@ class goBetween():
                 Create_Thread(softOpen,)
                 #Open() #this is a thread for certain types of gate valves
             else: #regular open condition
-                Create_Thread(Open,)
-                #softOpen() #thi
+                #Create_Thread(Open,)
+                Open() #thi
 
 
         else: #if the button click is intented to close the valve.
@@ -375,12 +375,19 @@ class goBetween():
         #if we are opening the lid
         if self.ParameterDictionary['lidOpen']:
             self.PLC.relayCurrent[self.ParameterDictionary['Open Channel']] = '0'
-            self.PLC.relayCurrent[self.ParameterDictionary['Close Channel']] = '1'
+            try:
+                self.PLC.relayCurrent[self.ParameterDictionary['Close Channel']] = '1'
+            except KeyError: #if no close channel
+                pass
             self.PLC.updateRelayBank()
         #if we are closing the lid
         else:
             self.PLC.relayCurrent[self.ParameterDictionary['Open Channel']] = '1'
-            self.PLC.relayCurrent[self.ParameterDictionary['Close Channel']] = '0'
+            try:
+                self.PLC.relayCurrent[self.ParameterDictionary['Close Channel']] = '0'
+            except KeyError: #if no close channel
+                pass
+
             self.PLC.updateRelayBank()
             #put the lid button to normal
             self.processScreen.lidLiftButton.state = 'normal'
@@ -414,11 +421,11 @@ sm.add_widget(SettingsScreen)
 sm.current = 'main'
 
 #read from the CSV file
-df = pd.read_csv('C:\\Users\HolmanLab\Desktop\SettingsVIII.csv')
+df = pd.read_csv('SettingsFile.csv')
 
 #need a way to add these comports into the settings excel file....
-PLC = ArduinoMegaPLC(4)
-StepperController = ArduinoMotor(3)
+PLC = ArduinoMegaPLC(10)
+StepperController = ArduinoMotor(15)
 
 comDic = {} #holds the comport number and the corresponding serial port object
 MFCList = [] #holds the MFC objects
@@ -427,7 +434,7 @@ BaratronList = [] #holds baratron objects
 
 for row in df.iterrows(): #iterate through each row of the excel file and adds in the right comonent.
     r = row[1]
-
+    print(r['type'])
     if r['type'] == 'HoribaZ500':
         try: #check if the desired comport has been opened
             MFCconnection = comDic[r['Com']]
@@ -472,6 +479,7 @@ for row in df.iterrows(): #iterate through each row of the excel file and adds i
         ParameterDictionary[r['title']] = int(r['relay address'])
 
     if r['type'] == 'GateValve':
+        print(r['read address'])
         gateValve = gateValveOnly(PLC,int(r['read address'].split(',')[0]),
                             int(r['read address'].split(',')[1]))
 
@@ -481,8 +489,8 @@ for row in df.iterrows(): #iterate through each row of the excel file and adds i
 
             gateValve = MKS153D(r['Com'],r['max'])
 
-        if r['title'] == 'VAT':
-            gateValve = VAT(r['Com'])
+        if r['title'] == 'whatever the VAT model numebr is':
+            pass
 
     if r['type'] == 'AnalogBaratron':
         instrument = analogBaratron(PLC,int(r['read address']),r['min'],r['max'],r['slot'])

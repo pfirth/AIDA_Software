@@ -1,5 +1,6 @@
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
+from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
@@ -23,15 +24,55 @@ class inputButton(Button):
             self.min = 0
 
         self.text = '0'
+        self.popUpBoxLayout = BoxLayout(orientation = 'vertical')
+
         self.popUpGrid = GridLayout(cols = 0, rows = 2)
+
+        self.popUpTextBox = BoxLayout(size_hint = (1,0.2))
         self.popUpTextInput = TextInput(font_size = 35,multiline=False)
-        self.popUpButton = Button(text = 'Press to Confirm')
-        self.popUpGrid.add_widget(self.popUpTextInput)
-        self.popUpGrid.add_widget(self.popUpButton)
+        self.popUpTextBox.add_widget(self.popUpTextInput)
+
+        self.popUpButtonBox = BoxLayout(size_hint = (1,0.6))
+        self.popUpConfirmBox = BoxLayout(size_hint = (1,0.2))
+
+        #Number Grid
+        self.numberGrid = GridLayout(rows = 4, cols = 3)
+        for i in [1,2,3,4,5,6,7,8,9]:
+            numberButton = Button(text = str(i))
+            numberButton.bind(on_press = self.updateText)
+            self.numberGrid.add_widget(numberButton)
+
+        self.clear_button = Button(text ='Clear')
+        self.clear_button.bind(on_press = self.updateText)
+        self.numberGrid.add_widget(self.clear_button)
+
+        #adding in 0 to the bottom row
+        numberButton = Button(text = '0')
+        numberButton.bind(on_press = self.updateText)
+        self.numberGrid.add_widget(numberButton)
+
+        #adding in the decimal Character
+        self.decimalButton = Button(text ='.')
+        self.decimalButton.bind(on_press = self.updateText)
+        self.numberGrid.add_widget(self.decimalButton)
+
+        #Adding the confirm button
+        self.popUpButton = Button(text = 'Confirm')
+        self.popUpConfirmBox.add_widget(self.popUpButton)
+
+
+        self.popUpButtonBox.add_widget(self.numberGrid)
+
+        #self.popUpGrid.add_widget(self.popUpTextInput)
+        #self.popUpGrid.add_widget(self.popUpButton)
+
+        self.popUpBoxLayout.add_widget(self.popUpTextBox)
+        self.popUpBoxLayout.add_widget(self.popUpButtonBox)
+        self.popUpBoxLayout.add_widget(self.popUpConfirmBox)
 
 
         self.popupField = Popup(title='Test popup',
-        content=self.popUpGrid,size_hint=(None, None), size=(400, 200),
+        content=self.popUpBoxLayout,size_hint=(None, None), size=(400, 600),
                                 auto_dismiss = False)
 
         self.popupField.bind(on_open = self.focusText)
@@ -41,6 +82,14 @@ class inputButton(Button):
         self.bind(on_press = partial(self.openPopup))
 
         self.wasUpdated = False
+        self.popUpOpened = False
+
+    def updateText(self,button):
+        if button.text == 'Clear':
+            self.popUpTextInput.text = ''
+        else:
+            self.popUpTextInput.text = self.popUpTextInput.text + button.text
+
 
     def getText(self):
         return self.text
@@ -50,6 +99,7 @@ class inputButton(Button):
 
     def openPopup(self,arg):
         self.popUpTextInput.text = self.text
+        self.popUpOpened = True
         self.popupField.open()
 
     def getMax(self):

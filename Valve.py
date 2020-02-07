@@ -425,10 +425,11 @@ class MKS153D():
         self.connection.write(b'R5\r')
         ret = self.__receivedata(False,'')
         ret = ret[1:]
-
-        pressure = str(self.maxPressure*float(ret)/100)
-
-        return pressure
+        try:
+            pressure = str(float(self.maxPressure)*float(ret)/100)
+        except ValueError:
+            pressure = '1'
+        return pressure  
 
     def Open(self):
         '''This function sets the valve to it's fully open position'''
@@ -443,7 +444,11 @@ class MKS153D():
     def softOpen(self):
         '''This function slowly opens the gate valve as to not cause
         any damage to critical parts of of the system'''
-        self.connection.write(b'O\r')
+        #self.connection.write(b'O\r')
+        self.connection.write(b'P 10.0\r')
+        self.connection.write(b'D\r')
+        #`  self.connection.write(b'O\r')
+
 
         '''x = -400
         step = 425 #Valve step size
@@ -506,6 +511,9 @@ class gateValveOnly():
 
     def setPressure(self,slot,Pressure):
         pass
+
+    def getPressure(self):
+        return('100')
 
     def Close(self):
         self.pneumaticController.relayCurrent[self.closeChannel] = 0

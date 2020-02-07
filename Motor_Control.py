@@ -84,8 +84,8 @@ class ArduinoMotor():
         self.uploadRecipe(recipe)
 
     def home(self): #need to redo this
-        self.connection.write(b'<3>')
-        self.__receivedata(b'Home Complete')
+        #self.connection.write(b'<3>')
+        #self.__receivedata(b'Home Complete')
         self.homed = True
 
     def move(self):
@@ -143,7 +143,14 @@ class ArduinoMotor():
 
 
 if __name__ == '__main__':
-    motor = ArduinoMotor(29)
+    motor = ArduinoMotor(15)
+    motor.home()
+    motor.uploadRecipe(b'<1,2,1,0,500,1,0,0,2400,240,4,0>')
+
+    motor.move()
+    while True:
+        motor.checkForData()
+
 
     #motor.CreateRecipeFromFile('C:\\Users\peter\Swift Coat Dropbox\Engineering\Software\Deppy_Automation\Test_Recipe.csv')
     #motor.CreateRecipeFromFile('C:\\Users\peter\Swift Coat Dropbox\Engineering\Software\Deppy_Automation\Test_Recipe.csv')
@@ -152,9 +159,9 @@ if __name__ == '__main__':
     #motor.CreateRecipeFromFile('C:\\Users\peter\Swift Coat Dropbox\Engineering\Software\Deppy_Automation\Test_Recipe2.csv')
     #motor.move()
     #motor.home()
-    motor.testRecipe()
-    time.sleep(1)
-    motor.move()
+    #motor.testRecipe()
+    #time.sleep(1)
+    #motor.move()
     #motor.home()
 
 
