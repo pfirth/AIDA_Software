@@ -50,9 +50,6 @@ ParameterDictionary = {'title list':['a','a','a','a','a','a','a','a'],
                        'RF2On':False, 'RF2SetCurrent':'0', 'RF2StateChange':False,
                        'encoderPostion':'0','Vent Channel':''}
 
-
-
-
 class goBetween():
     def __init__(self,processScreen, gateValve,PLC,MFCList,BaratronList,RFGeneratorList,StageController,ParameterDictionary):
         self.processScreen = processScreen

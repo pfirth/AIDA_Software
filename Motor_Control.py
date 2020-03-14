@@ -84,8 +84,8 @@ class ArduinoMotor():
         self.uploadRecipe(recipe)
 
     def home(self): #need to redo this
-        #self.connection.write(b'<3>')
-        #self.__receivedata(b'Home Complete')
+        self.connection.write(b'<3>')
+        self.__receivedata(b'Home Complete')
         self.homed = True
 
     def move(self):
@@ -140,7 +140,11 @@ class ArduinoMotor():
         self.currentRecipe = bytes(recipestring,'utf-8')
         self.uploadRecipe(self.currentRecipe)
 
+    def moveLoadLockIn(self):
+        self.connection.write(b'<8>')
 
+    def moveLoadLockOut(self):
+        self.connection.write(b'<9>')
 
 if __name__ == '__main__':
     motor = ArduinoMotor(15)
