@@ -13,7 +13,7 @@ class ArduinoMegaPLC(SerialDevice):
 
         self.DataDic = {}
 
-        self.relayCurrent = ['1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1']
+        self.relayCurrent = ['0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0']
 
         self.analogPercents = [0,0,0,0,0,0,0]
 
@@ -134,16 +134,6 @@ class ArduinoMegaPLC(SerialDevice):
         a = a + '>'
         self.updateBank(a)
 
-    def ventReactor(self):
-        self.relayCurrent[0 ] = '0'
-        self.updateRelayBank()
-
-    def readyForVacuum(self):
-        self.relayCurrent[0] = '1'
-        self.relayCurrent[2] = '1'
-        self.relayCurrent[3] = '1'
-        self.updateRelayBank()
-
     def silaneOn(self):
         self.relayCurrent[7] = '0'
         self.updateRelayBank()
@@ -152,38 +142,9 @@ class ArduinoMegaPLC(SerialDevice):
         self.relayCurrent[7] = '1'
         self.updateRelayBank()
 
-    def openLid(self):
-
-        #make sure the reactor is vented
-        #turn off the close lid relay
-        self.relayCurrent[3] = '1'
-        #turn on the open lid relay
-        self.relayCurrent[2] = '0'
-        self.updateRelayBank()
-
-    def closeLid(self):
-        #shut off the vent
-        self.relayCurrent[0] = '1'
-
-        #shut off the open lid
-        self.relayCurrent[2] = '1'
-
-        #open the lid
-        self.relayCurrent[3] = '0'
-
-        self.updateRelayBank()
-
     def allOff(self):
-        self.updateBank('<2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1>')
+        self.updateBank('<2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0>')
 
-    def rfOn(self):
-        print("turning on")
-        self.relayCurrent[8] = '0'
-        self.updateRelayBank()
-
-    def rfOff(self):
-        self.relayCurrent[8] = '1'
-        self.updateRelayBank()
 
 if __name__ == '__main__':
     A = ArduinoMegaPLC(8)

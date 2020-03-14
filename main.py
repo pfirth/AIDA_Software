@@ -299,7 +299,7 @@ class goBetween():
 
     def readyForVacuum(self):
         #turn off the vent
-        self.PLC.relayCurrent[self.ParameterDictionary['Vent Channel']] = '1'
+        self.PLC.relayCurrent[self.ParameterDictionary['Vent Channel']] = '0'
         self.PLC.updateRelayBank()
         self.ParameterDictionary['ventOn'] = False
         self.processScreen.ventButton.b.state = 'normal'
@@ -333,11 +333,11 @@ class goBetween():
 
     def ventStateChange(self):
         if self.ParameterDictionary['ventOn']:
-            self.PLC.relayCurrent[self.ParameterDictionary['Vent Channel']] = '0'
+            self.PLC.relayCurrent[self.ParameterDictionary['Vent Channel']] = '1'
             self.PLC.updateRelayBank()
 
         else:
-            self.PLC.relayCurrent[self.ParameterDictionary['Vent Channel']] = '1'
+            self.PLC.relayCurrent[self.ParameterDictionary['Vent Channel']] = '0'
             self.PLC.updateRelayBank()
 
     def motorProcesses(self):
@@ -374,17 +374,17 @@ class goBetween():
     def openCloseLid(self):
         #if we are opening the lid
         if self.ParameterDictionary['lidOpen']:
-            self.PLC.relayCurrent[self.ParameterDictionary['Open Channel']] = '0'
+            self.PLC.relayCurrent[self.ParameterDictionary['Open Channel']] = '1'
             try:
-                self.PLC.relayCurrent[self.ParameterDictionary['Close Channel']] = '1'
+                self.PLC.relayCurrent[self.ParameterDictionary['Close Channel']] = '0'
             except KeyError: #if no close channel
                 pass
             self.PLC.updateRelayBank()
         #if we are closing the lid
         else:
-            self.PLC.relayCurrent[self.ParameterDictionary['Open Channel']] = '1'
+            self.PLC.relayCurrent[self.ParameterDictionary['Open Channel']] = '0'
             try:
-                self.PLC.relayCurrent[self.ParameterDictionary['Close Channel']] = '0'
+                self.PLC.relayCurrent[self.ParameterDictionary['Close Channel']] = '1'
             except KeyError: #if no close channel
                 pass
 

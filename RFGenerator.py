@@ -39,12 +39,12 @@ class RFX600():
         self.on = False
 
     def turnOn(self):
-        self.arduinoPLC.relayCurrent[self.on_off_channel] = '0'
+        self.arduinoPLC.relayCurrent[self.on_off_channel] = '1'
         self.arduinoPLC.updateRelayBank()
         self.on = True
 
     def turnOff(self):
-        self.arduinoPLC.relayCurrent[self.on_off_channel] = '1'
+        self.arduinoPLC.relayCurrent[self.on_off_channel] = '0'
         self.arduinoPLC.updateRelayBank()
         self.on = False
 
