@@ -1,16 +1,18 @@
 slot,type,Com,write address,read address,relay address,title,min,max
-0,HoribaZ500,8,3032,3032,5,Helium,0,40000
-1,HoribaZ500,8,3033,3033,2,N2,0,30000
-2,HoribaZ500,8,3034,3034,6,Wet Air,0,30000
-3,HoribaZ500,8,3035,3035,3,1% SiH4,0,3000
-4,Blank,9,3031,3031,10,H20,0,12
+-1,ArduinoPLC,6,-1,-1,-1,-1,-1,-1
+-1,ArduinoMotor,9,-1,-1,-1,-1,-1,-1
+0,HoribaZ500,12,3032,3032,1,Helium,0,40000
+1,HoribaZ500,12,3033,3033,6,Dry Air,0,30000
+2,HoribaZ500,12,3034,3034,11,Wet Air,0,30000
+3,HoribaZ500,12,3035,3035,13,1% SiH4,0,3000
+4,HoribaLF,11,3031,3031,11,H20,0,12
 8,RFX600,"10
-",5,"1,0",9,RF +,0,600
-10,ButterflyValve,7,-1,"-1
+",5,"1,0",15,RF +,0,600
+10,ButterflyValve,13,-1,"-1
 ",-1,MKS153D,0,"2000
 "
 7,AnalogBaratron,10,-1,2,-1,Top Pressure,0,30000
-5,HoribaZ500,8,3036,3036,-1,TMMS,0,160
+5,Blank,8,3036,3036,-1,TMMS,0,160
 9,Pneumatic,"10
 
 ",-1,-1,0,Vent Channel,0,0
@@ -18,6 +20,15 @@ slot,type,Com,write address,read address,relay address,title,min,max
 
 ",-1,Bottom Pressure,0,"2000
 "
-11,Pneumatic,10,-1,-1,1,Open Channel,0,0
+11,Pneumatic,10,-1,-1,7,Open Channel,7,0
 12,NA,"10
-",-1,-1,1,Close Channel,0,0
+",-1,-1,"-1
+",Close Channel,0,0
+13,Pneumatic,10,-1,-1,8,LL Lid,8,0
+14,Pneumatic,10,-1,-1,9,LL Vent,0,0
+15,Pneumatic,10,-1,-1,2,Gate Open,0,0
+16,Pneumatic,10,-1,-1,3,Gate Close,1,1
+17,Pneumatic,10,-1,-1,4,Pins Up,1,1
+18,Pneumatic,10,-1,-1,5,Pins Down,1,1
+19,Pneumatic,10,-1,-1,12,Lock Vac Open,1,1
+20,Pneumatic,10,-1,-1,11,Lock Vac Close,1,1

@@ -423,10 +423,6 @@ sm.current = 'main'
 #read from the CSV file
 df = pd.read_csv('SettingsFile.csv')
 
-#need a way to add these comports into the settings excel file....
-PLC = ArduinoMegaPLC(10)
-StepperController = ArduinoMotor(15)
-
 comDic = {} #holds the comport number and the corresponding serial port object
 MFCList = [] #holds the MFC objects
 RFGenList = [] #holds RF generator objects
@@ -435,6 +431,13 @@ BaratronList = [] #holds baratron objects
 for row in df.iterrows(): #iterate through each row of the excel file and adds in the right comonent.
     r = row[1]
     print(r['type'])
+
+    if r['type'] == 'ArduinoPLC':
+        PLC = ArduinoMegaPLC(int(r['Com']))
+
+    if r['type'] == 'ArduinoMotor':
+        StepperController = ArduinoMotor(int(r['Com']))
+
     if r['type'] == 'HoribaZ500':
         try: #check if the desired comport has been opened
             MFCconnection = comDic[r['Com']]
