@@ -102,15 +102,12 @@ class ProcessScreen(Screen):
 
         self.grindGrid = GridLayout(rows = 2, cols = 1)
 
-        self.silaneOn = ToggleButton(text = 'Grind')
-        self.silaneOn.bind(on_press = lambda x: self.parameterChange('silaneOn',self.silaneOn.state,'silaneStateChange'))
+        self.loadSampleButton = Button(text = 'Load Sample')
 
-        self.silaneOn = ToggleButton(text = 'Grind')
-        self.silaneOn.bind(on_press = lambda x: self.parameterChange('silaneOn',self.silaneOn.state,'silaneStateChange'))
-        self.grindSpeedButton = inputButton(max = 20000,min = 500)
-        self.grindSpeedButton.text = '5000'
+        self.grindSpeedButton = Button(text = 'Another Screen')
+        self.grindSpeedButton.bind(on_press = partial(self.changeScreen))
 
-        self.grindGrid.add_widget(self.silaneOn)
+        self.grindGrid.add_widget(self.loadSampleButton)
         self.grindGrid.add_widget(self.grindSpeedButton)
 
         self.centergrid.add_widget(self.grindGrid)
@@ -153,9 +150,6 @@ class ProcessScreen(Screen):
     def removeStateButton(self,k):
         self.stateButtonDictionary[k].remove()
 
-
-        print('done')
-
     def parameterChange(self,currentKey,current,changeKey):
         if current == 'down':
             self.setParameterDictionary[currentKey] = True
@@ -164,17 +158,19 @@ class ProcessScreen(Screen):
 
         self.setParameterDictionary[changeKey] = True
 
-
     def changeScreen(self,arg):
         if self.manager.current == 'main':
-            self.manager.current = 'settings'
+            self.manager.current = 'maintenance'
 
     def on_enter(self, *args):
-        pass
+        print('entering main screen')
         #for num,field in enumerate(self.inputFieldList):
         #    field.setTitle(self.setParameterDictionary['title list'][num])
 
         #set high and low values
+
+    def on_leave(self):
+        print('leaving main screen')
 
 ParameteDictionary = {'title list':[],
                       'min list':[],

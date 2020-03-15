@@ -1,5 +1,10 @@
 from kivy.app import App
+from kivy.clock import Clock
 from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.uix.popup import Popup
+from kivy.uix.gridlayout import GridLayout
+from kivy.uix.label import Label
+
 from threading import Thread
 import time
 import pandas as pd
@@ -7,6 +12,8 @@ import serial
 from inputButton import inputButton
 from ProcessScreen import ProcessScreen
 from SettingsScreen import SettingsScreen
+from Load_Sample_PopUp_Menu import LoadSamplePopUpLogic
+from Maintenance_Screen import Maintenance_Screen
 #Equipment
 from Valve import Valve,gateValveOnly,MKS153D
 from ArduinoMegaPLC import ArduinoMegaPLC
@@ -19,6 +26,38 @@ from Baratron import valveBaratron,analogBaratron
 from MassFlowController import HoribaZ500,HoribaLF_F
 
 #Config.set('graphics','fullscreen','auto')
+sm = ScreenManager()
+
+class loadingPopUp(Popup):
+    def __init__(self,PLC, MotorController, ParameterDictionary,**kwargs):
+        super(loadingPopUp,self).__init__(**kwargs)
+        self.PLC = PLC
+        self.MotorController = MotorController
+        self.ParameterDictionary = ParameterDictionary
+
+        self.stepGrid = GridLayout(rows = 10)
+
+        self.content = self.stepGrid
+
+    def on_open(self):
+        self.loadSample()
+
+    def loadSample(self):
+        print('loading Sample')
+        #Open the gate
+        self.PLC.relayCurrent[self.ParameterDictionary['Pins Down']] = '1' #lowering lift pins
+        self.PLC.relayCurrent[self.ParameterDictionary['Pins Down']] = '0'
+        self.PLC.relayCurrent[self.ParameterDictionary['Gate Close']] = '1' #closing the gate
+        self.PLC.relayCurrent[self.ParameterDictionary['Gate Open']] = '0'
+        self.PLC.updateRelayBank()
+        time.sleep(1)
+        self.stepGrid.add_widget(Label(text = 'Opening Gate...'))
+        self.PLC.relayCurrent[self.ParameterDictionary['Gate Open']] = '1'
+        self.PLC.updateRelayBank()
+        time.sleep(0.1)
+        self.PLC.relayCurrent[self.ParameterDictionary['Gate Close']] = '0'
+        self.PLC.updateRelayBank()
+        self.stepGrid.add_widget(Label(text = 'Translating State'))
 
 def Create_Thread(function, *args):
     new_thread = Thread(target = function, args = (args))
@@ -64,8 +103,28 @@ class goBetween():
         self.ParameterDictionary = ParameterDictionary
         self.programRunning = False
 
-        self.stateDictionary = {0:self.state0,1:self.state1,2:self.state2,3:self.state3,-1:self.stateA}
+        self.stateDictionary = {0:self.state0,1:self.state1,2:self.state2,3:self.state3,-1:self.stateA,-2:self.stateB}
         self.currentState = 0
+        self.previousState = self.currentState
+
+        self.processScreen.loadSampleButton.bind(on_press = lambda  x: self.loadSample())
+
+        #######initializing the Pneumatics##########3
+        self.PLC.relayCurrent[self.ParameterDictionary['Gate Close']] = '1' #closing the gate
+        self.PLC.relayCurrent[self.ParameterDictionary['Gate Open']] = '0'
+
+        self.PLC.relayCurrent[self.ParameterDictionary['Pins Down']] = '1' #lowering lift pins
+        self.PLC.relayCurrent[self.ParameterDictionary['Pins Down']] = '0'
+
+        self.PLC.updateRelayBank()
+
+
+    def loadSample(self):
+        self.previousState = self.currentState #log so we can send it back
+        self.currentState = -2
+        sm.current = 'Load'
+
+
     def run(self):
         self.programRunning = True
         Create_Thread(self.updating)
@@ -76,6 +135,11 @@ class goBetween():
         self.processScreen.addStateButton('start')
         while self.programRunning:
             self.stateDictionary[self.currentState]()
+
+    def stateB(self):
+        while self.programRunning and self.currentState == -2:
+            if sm.current == 'main':
+                self.currentState = self.previousState
 
     def stateA(self):
         print('state A')
@@ -408,12 +472,13 @@ class goBetween():
         else: #don't do anything
             pass
 
-sm = ScreenManager()
-SettingsScreen = SettingsScreen('settings',ParameterDictionary)
+
+Maintenance_Screen = Maintenance_Screen('maintenance')
 MainScreen = ProcessScreen('main',ParameterDictionary)
 
+
 sm.add_widget(MainScreen)
-sm.add_widget(SettingsScreen)
+sm.add_widget(Maintenance_Screen)
 
 sm.current = 'main'
 
@@ -431,6 +496,7 @@ for row in df.iterrows(): #iterate through each row of the excel file and adds i
 
     if r['type'] == 'ArduinoPLC':
         PLC = ArduinoMegaPLC(int(r['Com']))
+        Maintenance_Screen.addPLC(PLC)
 
     if r['type'] == 'ArduinoMotor':
         StepperController = ArduinoMotor(int(r['Com']))
@@ -518,7 +584,8 @@ for row in df.iterrows(): #iterate through each row of the excel file and adds i
 
 #need a catch in case one of the pieces of equipment is missing.
 GB2 = goBetween(MainScreen,gateValve,PLC,MFCList,BaratronList,RFGenList,StepperController,ParameterDictionary)
-
+LoadingScreen = LoadSamplePopUpLogic(ParameterDictionary,PLC,StepperController)
+sm.add_widget(LoadingScreen)
 
 class TestApp(App):
     def on_start(self):
