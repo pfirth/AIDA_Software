@@ -24,6 +24,8 @@ from Motor_Control import ArduinoMotor
 #self.PLC.relayCurrent[self.ParameterDictionary['Vent Channel']] = '1'
 
 
+#APLC = ArduinoMegaPLC(6)
+#APLC.allOff()
 
 class TB(ToggleButton):
     def __init__(self):
@@ -35,11 +37,13 @@ class Maintenance_Screen(Screen):
 
     def __init__(self,screenname):
         super(Maintenance_Screen,self).__init__(name = screenname)
-        self.APLC = ''
-        rows = 10
+        self.APLC = ''#APLC
+        rows = 13
         cols = 2
         self.positionDic = {0:'MainVent',1:'1',2:'Gate Open',3:'Gate Close',4:'Pins Up',5:'Pins Down',6:'6',
-                            7:'Main Lid Up',8:'Load Lid',9:'LL Vent',10:'10',11:'11',12:'Lock Vac',13:'13',14:'14',15:'15',16:'16'}
+                            7:'Main Lid Up',8:'Load Lid',9:'LL Vent',10:'10',11:'11',12:'Lock Vac',13:'13',14:'14',15:'15',16:'16',
+                            17:'17',18:'18',19:'19',20:'20',21:'21',22:"22"}
+
 
         self.box = BoxLayout(orientation = 'vertical')
 
@@ -113,8 +117,7 @@ class Maintenance_Screen(Screen):
                 print('not a number')
 
 if __name__ == '__main__':
-    APLC = ArduinoMegaPLC(6)
-    APLC.allOff()
+
 
     sm = ScreenManager()
     MainScreen = Maintenance_Screen('main')

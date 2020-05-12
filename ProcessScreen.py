@@ -57,7 +57,7 @@ class ProcessScreen(Screen):
 
         self.centergrid = GridLayout(size_hint_y = 1,rows = 1,cols = 3)
 
-        self.mfcgridrows = 10
+        self.mfcgridrows = 15
         self.mfcgrid = GridLayout(rows = self.mfcgridrows, cols = 1)
 
         #Set and read Labels
@@ -115,9 +115,10 @@ class ProcessScreen(Screen):
         self.centergrid.add_widget(self.transferGrid)
 
 
-        self.bottomgrid = GridLayout(cols = 4,size_hint_y = 0.25)
+        self.bottomgrid = GridLayout(cols = 5,size_hint_y = 0.25)
 
         self.vacuumbutton = swapToggle('Vacuum')
+        self.isobutton = swapToggle('PressureISO')
         self.gasbutton = swapToggle('Gas')
         self.RFbutton = swapToggle('RF')
         self.startbutton = swapToggle('Start')
@@ -125,15 +126,18 @@ class ProcessScreen(Screen):
         self.testFunc = partial(self.parameterChange)
 
         self.vacuumbutton.b.bind(on_press = lambda x: self.parameterChange('valveOpen',self.vacuumbutton.b.state,'valveStateChange'))
+        self.isobutton.b.bind(on_press = lambda x: self.parameterChange('isoOpen',self.isobutton.b.state,'isoStateChange'))
         self.gasbutton.b.bind(on_press = lambda x: self.parameterChange('gasOn',self.gasbutton.b.state,'gasStateChange'))
         self.startbutton.b.bind(on_press = lambda x: self.parameterChange('motorOn',self.startbutton.b.state,'motorStateChange'))
         self.RFbutton.b.bind(on_press = lambda x: self.parameterChange('RFOn',self.RFbutton.b.state,'RFStateChange'))
 
         self.stateButtonDictionary = {'vacuum':self.vacuumbutton,'gas':self.gasbutton,'start':self.startbutton,
-                                      'RF':self.RFbutton,'vent':self.ventButton, 'lid':self.lidLiftButton,'home':self.homeButton}
+                                      'RF':self.RFbutton,'vent':self.ventButton, 'lid':self.lidLiftButton,'home':self.homeButton,
+                                      'pressureISO':self.isobutton}
         self.stateFloats = []
 
         self.bottomgrid.add_widget(self.vacuumbutton)
+        self.bottomgrid.add_widget(self.isobutton)
         self.bottomgrid.add_widget(self.gasbutton)
         self.bottomgrid.add_widget(self.RFbutton)
         self.bottomgrid.add_widget(self.startbutton)

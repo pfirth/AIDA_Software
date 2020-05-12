@@ -70,9 +70,9 @@ def Return_Thread(function, *args):
 ParameterDictionary = {'title list':['a','a','a','a','a','a','a','a'],
                        'valveOpen':False,'valveStateChange':False, 'valveBusy':False,
                        'motorOn':False,'motorStateChange':False,'loopNumber':'0','RFOn':False,'RFStateChange':False,
-                       'pressureSetCurrent': '0', 'bottomChamberPressure':'0',
+                       'pressureSetCurrent': '0', 'bottomChamberPressure':'0','isoOpen':False,
                        'silaneOn': False,'silaneStateChange':False,
-                       'ventOn':False,'ventStateChange':False, 'lidOpen':False,'lidStateChange':False,
+                       'ventOn':False,'ventStateChange':False, 'lidOpen':False,'lidStateChange':False, 'isoStateChange':False,
                        'stageHomed':False,'homeStateChange':True,
                        '1ReactorPressure':'0','ADC1read':'0','ADC2read':'0','ADC3read':'0',
                        'gasOn':False, 'gasStateChange':False,
@@ -114,8 +114,7 @@ class goBetween():
         self.PLC.relayCurrent[self.ParameterDictionary['Gate Open']] = '0'
 
         self.PLC.relayCurrent[self.ParameterDictionary['Pins Down']] = '1' #lowering lift pins
-        self.PLC.relayCurrent[self.ParameterDictionary['Pins Down']] = '0'
-
+        self.PLC.relayCurrent[self.ParameterDictionary['Pins Up']] = '0'
         self.PLC.updateRelayBank()
 
 
@@ -174,6 +173,12 @@ class goBetween():
         print('state 0')
         self.processScreen.addStateButton('vent')
 
+        self.ParameterDictionary['isoOpen'] = False
+        self.PLC.relayCurrent[self.ParameterDictionary['ISO Channel']] = '0'
+        self.PLC.updateRelayBank()
+        self.processScreen.isobutton.b.state = 'normal'
+
+
         while self.programRunning and self.currentState == 0:
             self.getReadAndUpdateLabels()
             self.motorProcesses()
@@ -201,12 +206,15 @@ class goBetween():
     def state1(self):
         print("state 1")
 
+        self.processScreen.addStateButton('pressureISO')
         self.processScreen.addStateButton('gas')
 
         while self.programRunning and self.currentState == 1:
             self.getReadAndUpdateLabels()
             self.motorProcesses()
             self.updateGrinder()
+            self.updatePressure()
+            self.pressureIso()
 
             #reverse condition
             if self.ParameterDictionary['valveStateChange']: #was the valve button clicked?
@@ -214,6 +222,7 @@ class goBetween():
                 self.valveStateChange() #lauch the function associated with the click
                 if not self.ParameterDictionary['valveOpen']:
                     self.processScreen.removeStateButton('gas')
+                    self.processScreen.removeStateButton('pressureISO')
                     self.currentState = 0
             #foward condition
             if self.ParameterDictionary['gasStateChange']:
@@ -234,6 +243,8 @@ class goBetween():
             self.updateMFCSetpoints()
             self.motorProcesses()
             self.updateGrinder()
+            self.updatePressure()
+            self.pressureIso()
 
             #reverse condition
             if self.ParameterDictionary['gasStateChange']:
@@ -262,6 +273,8 @@ class goBetween():
             self.updateRFGenSetpoints()
             self.motorProcesses()
             self.updateGrinder()
+            self.updatePressure()
+            self.pressureIso()
 
             #reverse condition
             if self.ParameterDictionary['RFStateChange']:
@@ -270,6 +283,44 @@ class goBetween():
                     self.processScreen.addStateButton('gas')
                     self.turnOffRFGen()
                     self.currentState = 2
+
+
+    def pressureIso(self):
+        if self.ParameterDictionary['isoStateChange']: #if the button was pressed
+            if self.ParameterDictionary['isoOpen']: #if it is already open
+                self.PLC.relayCurrent[self.ParameterDictionary['ISO Channel']] = '1' #close it
+                self.PLC.updateRelayBank() #update the pneumatics
+                self.ParameterDictionary['isoOpen'] = False #update the parameter dictionary
+
+            else:
+                self.PLC.relayCurrent[self.ParameterDictionary['ISO Channel']] = '0'
+                self.PLC.updateRelayBank()
+                self.ParameterDictionary['isoOpen'] = True #update the parameter dictionary
+
+            self.ParameterDictionary['isoStateChange'] = False
+        else:
+            pass
+
+
+    def updatePressure(self):
+        slot = self.BaratronList[1].slot
+        field = self.inputFieldList[slot]
+
+        current_pressure_set = float(field.getSetValue())
+
+        if self.currentState >=2:
+            if float(self.gateValve.pressure_set_point) != current_pressure_set:
+                self.gateValve.setPressure(slot,current_pressure_set)
+                self.gateValve.controlling = True
+        else:
+            if self.gateValve.controlling:
+                self.gateValve.Open()
+                self.gateValve.pressure_set_point = 0
+                self.gateValve.controlling = False
+
+
+        #print(field.getSetValue())
+
 
     def getReadAndUpdateLabels(self):
         def MFCcurrentRead():

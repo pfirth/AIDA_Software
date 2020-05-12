@@ -13,7 +13,8 @@ class ArduinoMegaPLC(SerialDevice):
 
         self.DataDic = {}
 
-        self.relayCurrent = ['0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0']
+        self.relayCurrent = ['0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0',
+                             '0','0','0','0','0','0']
 
         self.analogPercents = [0,0,0,0,0,0,0]
 
@@ -143,7 +144,7 @@ class ArduinoMegaPLC(SerialDevice):
         self.updateRelayBank()
 
     def allOff(self):
-        self.updateBank('<2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0>')
+        self.updateBank('<2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0>')
 
 
 if __name__ == '__main__':

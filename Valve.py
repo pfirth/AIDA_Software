@@ -170,9 +170,13 @@ class MKS153D():
                                         bytesize=serial.EIGHTBITS,stopbits = serial.STOPBITS_ONE,
                                         parity=serial.PARITY_NONE)
         self.interrupt = False
+        self.controlling = False
         self.DataDic = {}
 
         self.maxPressure = float(maxPressure)
+        self.pressure_set_point = 0
+        self.current_pressure = '0.00'
+        self.connection.write(b'D') #sets the controller to digital mode
 
     def __receivedata(self,confirm,confirmcommand):
         if confirm:
@@ -243,18 +247,22 @@ class MKS153D():
     def setPressure(self,slot,Pressure):
         '''Sends the pressure setpoint to the valve
         Pressure should be supplied in mTorr'''
-        self.DataDic[slot]['currentSet'] = Pressure
+        #self.DataDic[slot]['currentSet'] = Pressure
 
-        start = 'S:0'
-        a = Pressure
+        self.pressure_set_point = Pressure
 
-        zeroAdd = 7 - len(a)
+        pressure_percent = (float(Pressure)/float(self.maxPressure))*100
 
-        a = '0'*zeroAdd + a
-        print(start+a)
-        command = str.encode(start+a+'\r\n',"utf-8")
+        base_command =  "S1{:.1f}\r"
+        formatted_command = base_command.format(pressure_percent)
+        final_command = str.encode(formatted_command,"utf-8")
 
-        self.connection.write(command)
+        print(final_command)
+        self.Open()
+        time.sleep(0.25)
+        self.connection.write(final_command)
+        time.sleep(0.25)
+        self.connection.write(b'D\r')
 
         return self.__receivedata(False,'')
 
@@ -273,12 +281,14 @@ class MKS153D():
         ret = ret[1:]
         try:
             pressure = str(float(self.maxPressure)*float(ret)/100)
+            self.current_pressure = pressure
         except ValueError:
-            pressure = '1'
+            pressure = self.current_pressure
         return pressure  
 
     def Open(self):
         '''This function sets the valve to it's fully open position'''
+        print('open')
         self.connection.write(b'O\r')
         self.__receivedata(False,"F")
 
