@@ -40,9 +40,9 @@ class Maintenance_Screen(Screen):
         self.APLC = ''#APLC
         rows = 13
         cols = 2
-        self.positionDic = {0:'MainVent',1:'1',2:'Gate Open',3:'Gate Close',4:'Pins Up',5:'Pins Down',6:'6',
-                            7:'Main Lid Up',8:'Load Lid',9:'LL Vent',10:'10',11:'11',12:'Lock Vac',13:'13',14:'14',15:'15',16:'16',
-                            17:'17',18:'18',19:'19',20:'20',21:'21',22:"22"}
+        self.positionDic = {0:'Blank',1:'RF Gen',2:'Open',3:'LL Lid',4:'Tio2 N2',5:'Tio2 He',6:'H2o vap',
+                            7:'Baratron ISO',8:'Dry Air',9:'Silane',10:'Sio2 Helium',11:'bad',12:'Lock Vac',13:'Wet Air',14:'Pins down',15:'pins up',16:'gate open',
+                            17:'gate closed',18:'LL Lid Open',19:'LL Vent',20:'Main Vent',21:'Main Lid Open',22:"22"}
 
 
         self.box = BoxLayout(orientation = 'vertical')
