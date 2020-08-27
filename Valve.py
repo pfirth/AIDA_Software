@@ -173,6 +173,8 @@ class MKS153D():
         self.controlling = False
         self.DataDic = {}
 
+
+
         self.maxPressure = float(maxPressure)
         self.pressure_set_point = 0
         self.current_pressure = '0.00'
@@ -253,11 +255,10 @@ class MKS153D():
 
         pressure_percent = (float(Pressure)/float(self.maxPressure))*100
 
-        base_command =  "S1{:.1f}\r"
+        base_command =  "S{:.1f}\r"
         formatted_command = base_command.format(pressure_percent)
         final_command = str.encode(formatted_command,"utf-8")
 
-        print(final_command)
         self.Open()
         time.sleep(0.25)
         self.connection.write(final_command)
@@ -278,7 +279,9 @@ class MKS153D():
     def getPressure(self):
         self.connection.write(b'R5\r')
         ret = self.__receivedata(False,'')
+
         ret = ret[1:]
+
         try:
             pressure = str(float(self.maxPressure)*float(ret)/100)
             self.current_pressure = pressure
@@ -388,9 +391,9 @@ class gateValveOnly():
     time.sleep(0.25)'''
 
 if __name__ == '__main__':
-    X = Valve(35)
+    X = MKS153D(15,1000)
     X.Open()
-    time.sleep(2)
+    time.sleep(5)
     X.Close()
     #print(X.getSensorScale())
     #time.sleep(2)

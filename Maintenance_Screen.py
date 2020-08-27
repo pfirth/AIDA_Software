@@ -41,8 +41,8 @@ class Maintenance_Screen(Screen):
         rows = 13
         cols = 2
         self.positionDic = {0:'Blank',1:'RF Gen',2:'Open',3:'LL Lid',4:'Tio2 N2',5:'Tio2 He',6:'H2o vap',
-                            7:'Baratron ISO',8:'Dry Air',9:'Silane',10:'Sio2 Helium',11:'bad',12:'Lock Vac',13:'Wet Air',14:'Pins down',15:'pins up',16:'gate open',
-                            17:'gate closed',18:'LL Lid Open',19:'LL Vent',20:'Main Vent',21:'Main Lid Open',22:"22"}
+                            7:'USD',8:'Dry Air',9:'Silane',10:'Sio2 Helium',11:'Man Lid - 11',12:'Main Lid - 12',13:'Wet Air',14:'Pins down',15:'pins up',16:'gate open',
+                            17:'gate closed',18:'LL Lid Open',19:'ISO - 19',20:'Main Vent',21:'Main Lid Open',22:"22"}
 
 
         self.box = BoxLayout(orientation = 'vertical')

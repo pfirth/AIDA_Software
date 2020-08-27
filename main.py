@@ -110,10 +110,10 @@ class goBetween():
         self.processScreen.loadSampleButton.bind(on_press = lambda  x: self.loadSample())
 
         #######initializing the Pneumatics##########3
-        self.PLC.relayCurrent[self.ParameterDictionary['Gate Close']] = '1' #closing the gate
+        #self.PLC.relayCurrent[self.ParameterDictionary['Gate Close']] = '1' #closing the gate
         self.PLC.relayCurrent[self.ParameterDictionary['Gate Open']] = '0'
 
-        self.PLC.relayCurrent[self.ParameterDictionary['Pins Down']] = '1' #lowering lift pins
+        #self.PLC.relayCurrent[self.ParameterDictionary['Pins Down']] = '1' #lowering lift pins
         self.PLC.relayCurrent[self.ParameterDictionary['Pins Up']] = '0'
         self.PLC.updateRelayBank()
 
