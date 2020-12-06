@@ -72,7 +72,7 @@ ParameterDictionary = {'title list':['a','a','a','a','a','a','a','a'],
                        'motorOn':False,'motorStateChange':False,'loopNumber':'0','RFOn':False,'RFStateChange':False,
                        'pressureSetCurrent': '0', 'bottomChamberPressure':'0','isoOpen':False,
                        'silaneOn': False,'silaneStateChange':False,
-                       'ventOn':False,'ventStateChange':False, 'lidOpen':False,'lidStateChange':False, 'isoStateChange':False,
+                       'ventOn':False,'ventStateChange':False, 'isVented':True, 'lidOpen':False,'lidStateChange':False, 'isoStateChange':False,
                        'stageHomed':False,'homeStateChange':True,
                        '1ReactorPressure':'0','ADC1read':'0','ADC2read':'0','ADC3read':'0',
                        'gasOn':False, 'gasStateChange':False,
@@ -420,32 +420,46 @@ class goBetween():
         def softOpen():
             #this stops the computer from asking the valve for pressure readings during soft open
             self.ParameterDictionary['valveBusy'] = True
+            self.processScreen.vacuumbutton.b.text = 'Wait! Pumping...'
             self.gateValve.softOpen()
+            #self.gateValve.Open()
             self.ParameterDictionary['valveBusy'] = False
+            self.processScreen.vacuumbutton.b.text = 'Vacuum is OPEN'
 
         def Open():
             #this stops the computer from asking the valve for pressure readings during soft open
             self.ParameterDictionary['valveBusy'] = True
             self.gateValve.Open()
             self.ParameterDictionary['valveBusy'] = False
+            self.processScreen.vacuumbutton.b.text = 'Vacuum is OPEN'
 
         if self.ParameterDictionary['valveOpen']: #If the button press activates the valve
             #need a way of identifying which baratron to use...
-            if float(self.BaratronList[0].currentRead) > float(self.BaratronList[0].max): #soft open condition
+            if self.ParameterDictionary['isVented']:
+                Create_Thread(softOpen, )
+                self.ParameterDictionary['isVented'] = False
+            else:
+                Open()
+                self.ParameterDictionary['isVented'] = False
+
+            '''if float(self.BaratronList[0].currentRead) > float(self.BaratronList[0].max): #soft open condition
                 Create_Thread(softOpen,)
                 #Open() #this is a thread for certain types of gate valves
             else: #regular open condition
                 #Create_Thread(Open,)
-                Open() #thi
+                Create_Thread(softOpen, )
+                #Open() #thi'''
 
 
         else: #if the button click is intented to close the valve.
             self.gateValve.interrupt = True #stops the soft pump routine if it's in
             self.gateValve.Close()
+            self.processScreen.vacuumbutton.b.text = 'Vacuum is CLOSED\n      Press to open'
 
     def ventStateChange(self):
         if self.ParameterDictionary['ventOn']:
             self.PLC.relayCurrent[self.ParameterDictionary['Vent Channel']] = '1'
+            self.ParameterDictionary['isVented'] = True
             self.PLC.updateRelayBank()
 
         else:

@@ -1,6 +1,7 @@
 from __future__ import division
 import serial
 import time
+import numpy as np
 from ArduinoMegaPLC import ArduinoMegaPLC
 
 class Valve():
@@ -303,32 +304,31 @@ class MKS153D():
     def softOpen(self):
         '''This function slowly opens the gate valve as to not cause
         any damage to critical parts of of the system'''
-        #self.connection.write(b'O\r')
-        self.connection.write(b'P 10.0\r')
-        self.connection.write(b'D\r')
-        #`  self.connection.write(b'O\r')
+        '''print('soft open')
+        self.connection.write(b'P22.5\r')
+        print('soft open...wait')
+        time.sleep(30)'''
 
-
-        '''x = -400
-        step = 425 #Valve step size
-        self.connection.write(b'R:000050\r\n') #setting the initial position
+        print('soft open...wait')
+        for i in np.arange(15.0, 19.5, 0.1):
+            command = 'P' + "{:.1f}".format(i) + '\r'
+            command = str.encode(command)
+            self.connection.write(command)
+            print(command)
+            time.sleep(1.5)
         time.sleep(5)
-        self.interrupt = False #in case it was previously interrupted.
-        while x <= 12000 and not self.interrupt:
-            if self.interrupt:
-                print("interuppted")
-                return 0
-            else: #If a command with higher priority is entered, this loop quits
-                y = '0'
-                x +=int(step)
-                command = str.encode('R:'+ (6 - len(str(x)))*y + str(x) +'\r\n')
-                self.connection.write(command) #Stepping the valve open
-                time.sleep(0.4) #break between command sets
+        for i in np.arange(20,25.5,0.5):
+            command = 'P' + str(i) + '\r'
+            command = str.encode(command)
+            self.connection.write(command)
+            print(command)
+            time.sleep(5)
+            
+        print('full open')
+        self.Open()
 
-        if self.interrupt:
-            pass
-        else:
-            self.Open()#once the valve has been opened to position 12000, the valve fully opens'''
+
+        #`  self.connection.write(b'O\r')
 
     def Learn(self):
         self.connection.write(b'L: 00030000\r\n')
@@ -391,10 +391,11 @@ class gateValveOnly():
     time.sleep(0.25)'''
 
 if __name__ == '__main__':
-    X = MKS153D(15,1000)
-    X.Open()
-    time.sleep(5)
+    X = MKS153D(7,1000)
+    #X.Open()
     X.Close()
+    #time.sleep(5)
+    #X.Close()
     #print(X.getSensorScale())
     #time.sleep(2)
     #X.Close()

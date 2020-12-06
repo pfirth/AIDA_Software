@@ -1,9 +1,9 @@
+import numpy as np
+for i in range(21,30,1):
+    print(str(i)+'.0')
 
+for i in np.arange(21.0, 23.0, 0.1):
+    command = 'P' + "{:.1f}".format(i) + '\r'
+    command = str.encode(command)
 
-a = {22:'a',25:'b'}
-
-l = [21,22,23,24,25]
-
-print(l[1])
-
-print(l[-1])
+    print(command)
