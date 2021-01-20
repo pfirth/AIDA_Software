@@ -1,8 +1,53 @@
 import serial
 import time
 import pandas as pd
+import math
 
 #<1,1,1,1000,300,3,0>
+motorParamDictionary = {'Gear diameter': 50, 'Steps per revolution':5000}
+#convert speed(mm/s) into delay time
+
+def speedToStepDelay(speed):
+    '''takes a float argument for speed with units of
+    mm/s. Returns a delay time in useconds. Used to convert
+    user-entered params into motor control params'''
+    speed = float(speed)
+    GD = motorParamDictionary['Gear diameter']  # float, mm
+    SPR = motorParamDictionary['Steps per revolution']  # float, steps
+
+    gearCircumference = math.pi * GD  # mm traveled in one revolution
+    mmPerStep = gearCircumference / SPR  # number of mm traveled each step
+
+    delay_s = mmPerStep/speed
+    delay_us = delay_s*1e6
+
+    roundedDelay = round(delay_us, 0)  # round because motor can't take half a step
+    formatedDelay = '{:.0f}'.format(roundedDelay)  # formatting for communication
+
+
+    return formatedDelay
+
+
+def distanceToSteps(distance):
+    '''takes a float argment for distance with units
+    of mm. Returns the numer of steps the motor should take
+    based on the gear diameter and steps per revolution.'''
+    distance =float(distance)
+    GD = motorParamDictionary['Gear diameter']  # float, mm
+    SPR = motorParamDictionary['Steps per revolution']  # float, steps
+
+    gearCircumference = math.pi * GD  # mm traveled in one revolution
+    mmPerStep = gearCircumference / SPR  # number of mm traveled each step
+
+    steps = distance / mmPerStep
+    roundedSteps = round(steps,0)#round because motor can't take half a step
+    formatedSteps = '{:.0f}'.format(roundedSteps)#formatting for communication
+
+    return formatedSteps
+
+
+
+
 
 class ArduinoMotor():
     def __init__(self,comport):
@@ -26,6 +71,60 @@ class ArduinoMotor():
         self.homed = False
 
         self.communicationDic = {'#':self.updateLoopCount}
+
+        #getting motor settings
+        Motorsettings = pd.read_csv('MotorSettings.CSV')
+        self.GD = float(Motorsettings['Gear Diameter (mm)'].values)
+        self.SPR = float(Motorsettings['Steps per revolution(steps)'].values)
+
+    def speedToStepDelay(self,speed):
+        '''takes a float argument for speed with units of
+        mm/s. Returns a delay time in useconds. Used to convert
+        user-entered params into motor control params'''
+        speed = float(speed)
+        GD = self.GD  # float, mm
+        SPR = self.SPR  # float, steps
+
+        gearCircumference = math.pi * GD  # mm traveled in one revolution
+        try:
+            mmPerStep = gearCircumference / SPR  # number of mm traveled each step
+        except ZeroDivisionError:
+            mmPerStep = gearCircumference / 1  # number of mm traveled each step
+
+
+        try:
+            delay_s = mmPerStep / speed
+        except ZeroDivisionError:
+            delay_s = mmPerStep / 1
+
+        delay_us = delay_s * 1e6
+
+        roundedDelay = round(delay_us, 0)  # round because motor can't take half a step
+        formatedDelay = '{:.0f}'.format(roundedDelay)  # formatting for communication
+
+        return formatedDelay
+
+    def distanceToSteps(self,distance):
+        '''takes a float argment for distance with units
+        of mm. Returns the numer of steps the motor should take
+        based on the gear diameter and steps per revolution.'''
+        distance = float(distance)
+        GD = self.GD  # float, mm
+        SPR = self.SPR  # float, steps
+
+        gearCircumference = math.pi * GD  # mm traveled in one revolution
+
+        try:
+            mmPerStep = gearCircumference / SPR  # number of mm traveled each step
+        except ZeroDivisionError:
+            mmPerStep = gearCircumference / 1  # number of mm traveled each step
+
+
+        steps = distance / mmPerStep
+        roundedSteps = round(steps, 0)  # round because motor can't take half a step
+        formatedSteps = '{:.0f}'.format(roundedSteps)  # formatting for communication
+
+        return roundedSteps
 
     def handshake(self,device):
         time.sleep(1) #give everything a chance to conenct
@@ -71,8 +170,15 @@ class ArduinoMotor():
         a = '<1,2,1,'+self.DataDic['start']+',50,1,0,'
         b = '1,'+ str(int(self.DataDic['stop'])-int(self.DataDic['start']))+ ','+self.DataDic['speed']+','+ self.DataDic['swipes'] +',0>'
 
-        #a = '<1,2,'+str(self.DataDic['start'])+',' + self.DataDic['stop'] +',' + self.DataDic['speed']+','+ self.DataDic['swipes'] +',0>'
-        a = a+b
+        stop = self.distanceToSteps(self.DataDic['stop'])
+        start = self.distanceToSteps(self.DataDic['start'])
+        distance ='{:.0f}'.format((stop - start))
+        speed = self.speedToStepDelay(self.DataDic['speed'])
+        a2 = '<1,2,1,' + '{:.0f}'.format(start) + ',50,1,0,'
+        b2 = '1,' + distance + ',' + speed + ',' + self.DataDic['swipes'] + ',0>'
+
+        a = a2+b2
+
         self.DataDic['changed'] = False
         print(a)
         recipe = str.encode(a,"utf-8")

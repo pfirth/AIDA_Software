@@ -13,7 +13,7 @@ slot,type,Com,write address,read address,relay address,title,min,max
 "
 12,AnalogBaratron,10,-1,6,-1,Top Pressure,0,100000
 5,HoribaLF,6,3031,3031,10,TiO2 Prec,0,3
-6,HoribaZ500,8,3038,3038,13,N2 (Ti),0,10000
+6,HoribaZ500,8,3038,3038,13,N2 (Ti),0,50000
 7,HoribaZ500,8,3037,3037,11,He (Ti),0,30000
 9,Pneumatic,"10
 
