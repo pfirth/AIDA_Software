@@ -534,24 +534,91 @@ class HoribaZ500():
             self.pneumaticController.updateRelayBank()
 
 
+class AnalogMFC():
+    def __init__(self,pneumaticController,pneumaticAddress,writeChannel,readChannel,max,min,slot):
+        '''Initialization requires that the port number of the 4-port USB to serial
+        adapter be input (A,B,C,D) to start. This will be changed to work with different
+        computers'''
+
+        self.pneumaticController = pneumaticController  # arduino controller
+        self.pneumaticAddress = pneumaticAddress
+        self.writeChannel = writeChannel  #4
+        self.readChannel = readChannel  # will be the same as the write channel
+        self.max = max  # float
+        self.min = min  # float #5% of maximum
+        self.slot = slot
+        # add in arduino with the relay addresses for pneumatics.
+
+        self.DataDic = {}
+
+        self.currentRead = '0'
+        self.currentSet = '0'
+        self.on = False
+
+    def set(self,flowrate):
+        '''flowrate should be in sccm and come in the form of a string, eg '20000'
+        address should be sring in the form of '3031' '''
+
+        self.currentSet = float(flowrate)
+
+        if self.on:
+            voltage = 5 * (float(self.currentSet) / self.max)
+            self.pneumaticController.changeVoltage(self.writeChannel, voltage)
+        else:
+            pass
+
+    def read(self):
+        anr = self.pneumaticController.analogPercents
+        ret_int = anr[int(self.readChannel)]*self.max
+        ret = str("{0:.2f}".format(ret_int))
+
+        self.currentRead = ret
+        return ret
+
+    def turnOn(self):
+        voltage = 5 * (float(self.currentSet) / self.max)
+        print(self.writeChannel,voltage)
+        self.pneumaticController.changeVoltage(self.writeChannel,voltage)
+
+        self.turnOnPneumatic()
+        self.on = True
+
+    def turnOff(self):
+        voltage = 0
+        self.currentSet = 0
+        self.pneumaticController.changeVoltage(self.writeChannel, voltage)
+        self.turnOffPneumatic()
+        self.on = False
+
+    def turnOnPneumatic(self):
+        if self.pneumaticAddress == -1: #if there is no pneumatic associated with the mfc
+            pass
+        else:
+            self.pneumaticController.relayCurrent[self.pneumaticAddress] = '1'
+            self.pneumaticController.updateRelayBank()
+
+    def turnOffPneumatic(self):
+        if self.pneumaticAddress == -1: #if there is no pneumatic associated with the mfc
+            pass
+        else:
+            self.pneumaticController.relayCurrent[self.pneumaticAddress] = '0'
+            self.pneumaticController.updateRelayBank()
+
 if __name__ == '__main__':
 
-        #'@01\x02RFV\x03q'
+    #'@01\x02RFV\x03q'
     print(0x61)
-    PLC = ArduinoMegaPLC(8)
-    MFCconnection = serial.Serial(port= 'COM'+str(21),baudrate=38400,
-                                    bytesize=serial.SEVENBITS,stopbits = serial.STOPBITS_ONE,
-                                    parity=serial.PARITY_ODD)
+    PLC = ArduinoMegaPLC(3)
+
+    M = AnalogMFC(PLC,11, 0, 4, 5, 0, 8)
+    M.set(3.3)
+    M.turnOn()
+    time.sleep(5)
+    M.set(1.5)
+    time.sleep(5)
+    M.turnOff()
 
 
-    M = HoribaZ500(PLC,4,MFCconnection,'3031','3031',0,1000,1)
 
-    while True:
-        '''print(M.reconnect())
-        time.sleep(0.1)
-        print(M.reconnect2())
-        time.sleep(0.3)'''
-        print(M.read())
-        time.sleep(0.1)
 
 

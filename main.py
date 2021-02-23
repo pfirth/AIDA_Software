@@ -23,7 +23,7 @@ from startStopSpeedMotor import startStopArduinoMotor
 
 from RFGenerator import RFX600
 from Baratron import valveBaratron,analogBaratron
-from MassFlowController import HoribaZ500,HoribaLF_F
+from MassFlowController import HoribaZ500,HoribaLF_F, AnalogMFC
 
 #Config.set('graphics','fullscreen','auto')
 sm = ScreenManager()
@@ -557,7 +557,7 @@ BaratronList = [] #holds baratron objects
 
 for row in df.iterrows(): #iterate through each row of the excel file and adds in the right comonent.
     r = row[1]
-    print(r['type'])
+    print(r['type'], r['type'] == 'Pneumatic')
 
     if r['type'] == 'ArduinoPLC':
         PLC = ArduinoMegaPLC(int(r['Com']))
@@ -576,12 +576,20 @@ for row in df.iterrows(): #iterate through each row of the excel file and adds i
             comDic[r['Com']] = MFCconnection
 
         #create the MFC object
-        m = HoribaZ500(PLC,r['relay address'],MFCconnection,str(r['write address']), str(['read address']),
+        m = HoribaZ500(PLC,r['relay address'],MFCconnection,str(r['write address']), str(r['read address']),
                 r['max'],r['min'],r['slot'])
 
         MFCList.append(m)
         MainScreen.inputFieldList[r['slot']].setTitle(r['title'])
         MainScreen.inputFieldList[r['slot']].setMinMax(min = float(r['min']),max = float(r['max']))
+
+    if r['type'] == 'AnalogMFC':
+        m = AnalogMFC(PLC, r['relay address'],str(r['write address']), str(r['read address']),
+            r['max'],r['min'],r['slot'])
+
+        MFCList.append(m)
+        MainScreen.inputFieldList[r['slot']].setTitle(r['title'])
+        MainScreen.inputFieldList[r['slot']].setMinMax(min=float(r['min']), max=float(r['max']))
 
     if r['type'] == 'HoribaLF':
         try:
@@ -592,7 +600,7 @@ for row in df.iterrows(): #iterate through each row of the excel file and adds i
                                     parity=serial.PARITY_ODD)
             comDic[r['Com']] = MFCconnection
         #create the MFC object
-        m = HoribaLF_F(PLC,r['relay address'],MFCconnection,str(r['write address']), str(['read address']),
+        m = HoribaLF_F(PLC,r['relay address'],MFCconnection,str(r['write address']), str(r['read address']),
                        r['max'],r['min'],r['slot'])
         MFCList.append(m)
         MainScreen.inputFieldList[r['slot']].setTitle(r['title'])
@@ -639,9 +647,10 @@ for row in df.iterrows(): #iterate through each row of the excel file and adds i
         grindMotor = startStopArduinoMotor(r['Com'])
         ParameterDictionary['grindMotor'] = True
         ParameterDictionary['grindMotorObject'] = grindMotor
+
     else:
         ParameterDictionary['grindMotor'] = False
-
+        print('Didnt WORK!!!!!!!!!!!!!!',r['type'])
 
     if r['type'] == 'Blank':
         print(r['title'])

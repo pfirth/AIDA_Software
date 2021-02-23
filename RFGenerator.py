@@ -66,7 +66,7 @@ class RFX600():
         return self.currentFormatted
 
 if __name__ == '__main__':
-    PLC = ArduinoMegaPLC(8)
+    PLC = ArduinoMegaPLC(3)
     RFX = RFX600(PLC,3,1,2,8,0,600,1)
 
     RFX.setFowardPower(72)

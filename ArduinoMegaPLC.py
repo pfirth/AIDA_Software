@@ -57,7 +57,7 @@ class ArduinoMegaPLC(SerialDevice):
                 _15BitFraction = _15BitValue/(29790-29790*0.1) #just a conversion factor that makes the flows match
                 humanValue = str(self.convertToHumanValue(_15BitFraction,slot['max']))
                 slot['currentRead'] = humanValue
-        print(dataList)
+
         return dataList
 
     def getAnalogData(self):
