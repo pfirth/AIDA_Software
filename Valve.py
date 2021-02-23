@@ -187,7 +187,6 @@ class MKS153D():
                 if self.connection.in_waiting >0:
                     rec =  str(self.connection.readline(),"utf-8").strip()
                     if rec == confirmcommand:
-                        print(rec)
                         break
         else:
 
@@ -282,10 +281,12 @@ class MKS153D():
         ret = self.__receivedata(False,'')
 
         ret = ret[1:]
-
         try:
             pressure = str(float(self.maxPressure)*float(ret)/100)
             self.current_pressure = pressure
+
+            print('Presssure return:',ret)
+            print('Pressure calc:', pressure)
         except ValueError:
             pressure = self.current_pressure
         return pressure  

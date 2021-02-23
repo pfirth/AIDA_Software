@@ -661,7 +661,7 @@ GB2 = goBetween(MainScreen,gateValve,PLC,MFCList,BaratronList,RFGenList,StepperC
 LoadingScreen = LoadSamplePopUpLogic(ParameterDictionary,PLC,StepperController)
 sm.add_widget(LoadingScreen)
 
-class TestApp(App):
+class SC300App(App):
     def on_start(self):
         print("App Starting")
         self.loadSettings()
@@ -688,7 +688,7 @@ class TestApp(App):
 
 
 if __name__ == '__main__':
-        TestApp().run()
+        SC300App().run()
 
 
 

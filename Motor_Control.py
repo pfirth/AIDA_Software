@@ -167,14 +167,14 @@ class ArduinoMotor():
         self.currentLoopCount = count
 
     def updateSingleStepRecipe(self):
-        a = '<1,2,1,'+self.DataDic['start']+',50,1,0,'
+        a = '<1,2,1,'+self.DataDic['start']+',150,1,0,'
         b = '1,'+ str(int(self.DataDic['stop'])-int(self.DataDic['start']))+ ','+self.DataDic['speed']+','+ self.DataDic['swipes'] +',0>'
 
         stop = self.distanceToSteps(self.DataDic['stop'])
         start = self.distanceToSteps(self.DataDic['start'])
         distance ='{:.0f}'.format((stop - start))
         speed = self.speedToStepDelay(self.DataDic['speed'])
-        a2 = '<1,2,1,' + '{:.0f}'.format(start) + ',50,1,0,'
+        a2 = '<1,2,1,' + '{:.0f}'.format(start) + ',150,1,0,'
         b2 = '1,' + distance + ',' + speed + ',' + self.DataDic['swipes'] + ',0>'
 
         a = a2+b2
