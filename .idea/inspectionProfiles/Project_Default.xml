@@ -4,8 +4,9 @@
     <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="ignoredPackages">
         <value>
-          <list size="1">
+          <list size="2">
             <item index="0" class="java.lang.String" itemvalue="Pygments" />
+            <item index="1" class="java.lang.String" itemvalue="kivy.deps.glew" />
           </list>
         </value>
       </option>
@@ -13,6 +14,10 @@
     <inspection_tool class="PyPep8Inspection" enabled="true" level="WEAK WARNING" enabled_by_default="true">
       <option name="ignoredErrors">
         <list>
+          <option value="W29" />
+          <option value="E501" />
+          <option value="W29" />
+          <option value="E501" />
           <option value="W29" />
           <option value="E501" />
           <option value="W29" />

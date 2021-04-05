@@ -174,8 +174,8 @@ class ArduinoMotor():
         start = self.distanceToSteps(self.DataDic['start'])
         distance ='{:.0f}'.format((stop - start))
         speed = self.speedToStepDelay(self.DataDic['speed'])
-        a2 = '<1,2,1,' + '{:.0f}'.format(start) + ',150,1,0,'
-        b2 = '1,' + distance + ',' + speed + ',' + self.DataDic['swipes'] + ',0>'
+        a2 = '<1,2,0,' + '{:.0f}'.format(start) + ',150,1,0,'
+        b2 = '0,' + distance + ',' + speed + ',' + self.DataDic['swipes'] + ',0>'
 
         a = a2+b2
 

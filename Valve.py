@@ -25,7 +25,7 @@ class Valve():
                 if self.connection.in_waiting >0:
                     rec =  str(self.connection.readline(),"utf-8").strip()
                     if rec == confirmcommand:
-                        print(rec)
+                        #print(rec)
                         break
         else:
             a = str(self.connection.readline(),"utf-8").strip()
@@ -93,7 +93,7 @@ class Valve():
         zeroAdd = 7 - len(a)
 
         a = '0'*zeroAdd + a
-        print(start+a)
+        #print(start+a)
         command = str.encode(start+a+'\r\n',"utf-8")
 
         self.connection.write(command)
@@ -285,8 +285,8 @@ class MKS153D():
             pressure = str(float(self.maxPressure)*float(ret)/100)
             self.current_pressure = pressure
 
-            print('Presssure return:',ret)
-            print('Pressure calc:', pressure)
+            #print('Presssure return:',ret)
+            #print('Pressure calc:', pressure)
         except ValueError:
             pressure = self.current_pressure
         return pressure  
@@ -311,20 +311,21 @@ class MKS153D():
         time.sleep(30)'''
 
         print('soft open...wait')
-        for i in np.arange(15.0, 19.5, 0.1):
+
+        '''command = 'P' + "{:.1f}".format(22.9) + '\r'
+        command = str.encode(command)
+        self.connection.write(command)
+        time.sleep(5)'''
+
+        for i in np.arange(12, 17, 0.5):
             command = 'P' + "{:.1f}".format(i) + '\r'
             command = str.encode(command)
             self.connection.write(command)
             print(command)
-            time.sleep(1.5)
-        time.sleep(5)
-        for i in np.arange(20,25.5,0.5):
-            command = 'P' + str(i) + '\r'
-            command = str.encode(command)
-            self.connection.write(command)
-            print(command)
-            time.sleep(5)
-            
+            time.sleep(10)
+
+
+
         print('full open')
         self.Open()
 

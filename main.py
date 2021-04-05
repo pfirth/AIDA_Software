@@ -548,7 +548,7 @@ sm.add_widget(Maintenance_Screen)
 sm.current = 'main'
 
 #read from the CSV file
-df = pd.read_csv('SettingsFile.csv')
+df = pd.read_csv('SettingsFile2.csv')
 
 comDic = {} #holds the comport number and the corresponding serial port object
 MFCList = [] #holds the MFC objects
