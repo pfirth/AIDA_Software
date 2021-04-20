@@ -76,6 +76,8 @@ class ArduinoMotor():
         Motorsettings = pd.read_csv('MotorSettings.CSV')
         self.GD = float(Motorsettings['Gear Diameter (mm)'].values)
         self.SPR = float(Motorsettings['Steps per revolution(steps)'].values)
+        self.homespeed = int(Motorsettings['Home Delay'].values)
+        self.sethomespeed()
 
     def speedToStepDelay(self,speed):
         '''takes a float argument for speed with units of
@@ -174,7 +176,7 @@ class ArduinoMotor():
         start = self.distanceToSteps(self.DataDic['start'])
         distance ='{:.0f}'.format((stop - start))
         speed = self.speedToStepDelay(self.DataDic['speed'])
-        a2 = '<1,2,0,' + '{:.0f}'.format(start) + ',150,1,0,'
+        a2 = '<1,2,0,' + '{:.0f}'.format(start) + ',20,1,0,'
         b2 = '0,' + distance + ',' + speed + ',' + self.DataDic['swipes'] + ',0>'
 
         a = a2+b2
@@ -193,6 +195,12 @@ class ArduinoMotor():
         self.connection.write(b'<3>')
         self.__receivedata(b'Home Complete')
         self.homed = True
+
+    def sethomespeed(self):
+        a = '<10,' + str(self.homespeed)+ '>'
+        a =str.encode(a,"utf-8")
+        print(a)
+        self.connection.write(a)
 
     def move(self):
         self.homed = False

@@ -81,6 +81,9 @@ class InputField(GridLayout):
     def setTitle(self,tit):
         self.titleLabel.text = tit
 
+    def getTitle(self):
+        return self.titleLabel.text
+
 class InputFieldVertical(GridLayout):
     def __init__(self,**kwargs):
         super(InputFieldVertical,self).__init__()

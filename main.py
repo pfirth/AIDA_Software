@@ -21,7 +21,7 @@ from ArduinoMegaPLC import ArduinoMegaPLC
 from Motor_Control import ArduinoMotor
 from startStopSpeedMotor import startStopArduinoMotor
 
-from RFGenerator import RFX600
+from RFGenerator import RFX600,TCPowerRFGenrator
 from Baratron import valveBaratron,analogBaratron
 from MassFlowController import HoribaZ500,HoribaLF_F, AnalogMFC
 
@@ -284,7 +284,6 @@ class goBetween():
                     self.turnOffRFGen()
                     self.currentState = 2
 
-
     def pressureIso(self):
         if self.ParameterDictionary['isoStateChange']: #if the button was pressed
             if self.ParameterDictionary['isoOpen']: #if it is already open
@@ -300,7 +299,6 @@ class goBetween():
             self.ParameterDictionary['isoStateChange'] = False
         else:
             pass
-
 
     def updatePressure(self):
         slot = self.BaratronList[1].slot
@@ -320,7 +318,6 @@ class goBetween():
 
 
         #print(field.getSetValue())
-
 
     def getReadAndUpdateLabels(self):
         def MFCcurrentRead():
@@ -358,6 +355,14 @@ class goBetween():
         for r in self.RFGeneratorList:
             field = self.inputFieldList[r.slot]
             field.setReadLabel(r.read())
+
+        '''for f in self.inputFieldList:
+            print(f.getTitle(), f.getSetValue())
+        
+        for f in self.processScreen.staticFieldList:
+            print(f.getTitle(), f.getSetValue())'''
+
+
 
     def updateMFCSetpoints(self):
         for m in MFCList:
@@ -412,6 +417,8 @@ class goBetween():
     def readyForVacuum(self):
         #turn off the vent
         self.PLC.relayCurrent[self.ParameterDictionary['Vent Channel']] = '0'
+
+
         self.PLC.updateRelayBank()
         self.ParameterDictionary['ventOn'] = False
         self.processScreen.ventButton.b.state = 'normal'
@@ -422,7 +429,6 @@ class goBetween():
             self.ParameterDictionary['valveBusy'] = True
             self.processScreen.vacuumbutton.b.text = 'Wait! Pumping...'
             self.gateValve.softOpen()
-            #self.gateValve.Open()
             self.ParameterDictionary['valveBusy'] = False
             self.processScreen.vacuumbutton.b.text = 'Vacuum is OPEN'
 
@@ -435,6 +441,13 @@ class goBetween():
 
         if self.ParameterDictionary['valveOpen']: #If the button press activates the valve
             #need a way of identifying which baratron to use...
+
+            if 'Gate Valve' in self.ParameterDictionary.keys():#opening up a gate valve
+                print('GV!!!!!!!!!!')
+                self.PLC.relayCurrent[self.ParameterDictionary['Gate Valve']] = '1'
+                self.PLC.relayCurrent[self.ParameterDictionary['Gate Valve Close']] = '0'
+                self.PLC.updateRelayBank()
+
             if self.ParameterDictionary['isVented']:
                 Create_Thread(softOpen, )
                 self.ParameterDictionary['isVented'] = False
@@ -442,16 +455,14 @@ class goBetween():
                 Open()
                 self.ParameterDictionary['isVented'] = False
 
-            '''if float(self.BaratronList[0].currentRead) > float(self.BaratronList[0].max): #soft open condition
-                Create_Thread(softOpen,)
-                #Open() #this is a thread for certain types of gate valves
-            else: #regular open condition
-                #Create_Thread(Open,)
-                Create_Thread(softOpen, )
-                #Open() #thi'''
-
-
         else: #if the button click is intented to close the valve.
+
+            if 'Gate Valve' in self.ParameterDictionary.keys():#opening up a gate valve
+                print('GV Close!!!!!!!!!!')
+                self.PLC.relayCurrent[self.ParameterDictionary['Gate Valve']] = '0'
+                self.PLC.relayCurrent[self.ParameterDictionary['Gate Valve Close']] = '1'
+                self.PLC.updateRelayBank()
+
             self.gateValve.interrupt = True #stops the soft pump routine if it's in
             self.gateValve.Close()
             self.processScreen.vacuumbutton.b.text = 'Vacuum is CLOSED\n      Press to open'
@@ -459,6 +470,7 @@ class goBetween():
     def ventStateChange(self):
         if self.ParameterDictionary['ventOn']:
             self.PLC.relayCurrent[self.ParameterDictionary['Vent Channel']] = '1'
+
             self.ParameterDictionary['isVented'] = True
             self.PLC.updateRelayBank()
 
@@ -613,6 +625,14 @@ for row in df.iterrows(): #iterate through each row of the excel file and adds i
         RFGenList.append(instrument)
         MainScreen.inputFieldList[r['slot']].setTitle(r['title'])
         MainScreen.inputFieldList[r['slot']].setMinMax(min = float(r['min']),max = float(r['max']))
+
+    if r['type'] == 'TCPower':
+        COM ='COM' + str(r['Com'])
+        instrument = TCPowerRFGenrator(port = COM, min_power=int(r['min']), max_power=int(r['max']),slot = r['slot'])
+        RFGenList.append(instrument)
+        MainScreen.inputFieldList[r['slot']].setTitle(r['title'])
+        MainScreen.inputFieldList[r['slot']].setMinMax(min = float(r['min']),max = float(r['max']))
+
 
     if r['type'] == 'Pneumatic':
         ParameterDictionary[r['title']] = int(r['relay address'])

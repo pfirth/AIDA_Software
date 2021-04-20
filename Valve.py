@@ -317,7 +317,12 @@ class MKS153D():
         self.connection.write(command)
         time.sleep(5)'''
 
-        for i in np.arange(12, 17, 0.5):
+        for i in np.arange(16, 21, 0.5):
+
+            #if self.interrupt:
+            #    self.interrupt = False
+            #    break
+
             command = 'P' + "{:.1f}".format(i) + '\r'
             command = str.encode(command)
             self.connection.write(command)

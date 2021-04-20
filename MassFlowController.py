@@ -98,8 +98,8 @@ class HoribaLF_F():
 
         self.currentSet = flowrate
 
-        command = 'AFC' + str(flowrate) + ',a' #command for setting the flowrate 'B' represents SCCM, a:ccm, b:g/min
-        print(command)
+        command = 'AFC' + str(flowrate) + ',B' #command for setting the flowrate 'B' represents SCCM, a:ccm, b:g/min
+        print('P:' + command)
         checkSum = self.checksum(command)
         #forming the whole command in format @ + address + STX + commad + ETC + BCC
         command =  '40' + self.writeChannel  + '02' + str(binascii.hexlify(str.encode(command,"utf-8")),"utf-8") + '03' + checkSum

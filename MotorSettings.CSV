@@ -1,2 +1,2 @@
-Gear Diameter (mm),Steps per revolution(steps)
-39,500
+Gear Diameter (mm),Steps per revolution(steps),Home Delay
+39,50000,10
