@@ -612,8 +612,8 @@ for row in df.iterrows(): #iterate through each row of the excel file and adds i
                                     parity=serial.PARITY_ODD)
             comDic[r['Com']] = MFCconnection
         #create the MFC object
-        m = HoribaLF_F(PLC,r['relay address'],MFCconnection,str(r['write address']), str(r['read address']),
-                       r['max'],r['min'],r['slot'])
+        m = HoribaLF_F(PLC,r['relay address'],MFCconnection,str(r['write address']), str(r['write address']),
+                       r['max'],r['min'],r['slot'],str(r['read address']))
         MFCList.append(m)
         MainScreen.inputFieldList[r['slot']].setTitle(r['title'])
         MainScreen.inputFieldList[r['slot']].setMinMax(min = float(r['min']),max = float(r['max']))

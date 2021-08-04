@@ -26,7 +26,7 @@ class MassFlowController():
 class HoribaLF_F():
     groupOn = False #global class variable to determine if any other MFCs are on.
     '''This item requires a RS-232 to 485 converter'''
-    def __init__(self,pneumaticController,pneumaticAddress,connection,writeChannel,readChannel,max,min,slot):
+    def __init__(self,pneumaticController,pneumaticAddress,connection,writeChannel,readChannel,max,min,slot,units):
         '''Initialization requires that the port number of the 4-port USB to serial
         adapter be input (A,B,C,D) to start. This will be changed to work with different
         computers'''
@@ -43,6 +43,7 @@ class HoribaLF_F():
         self.pneumaticAddress = pneumaticAddress
         self.writeChannel = writeChannel #4 digit string (3031)
         self.readChannel = readChannel   #will be the same as the write channel
+        self.units = units
         self.max = max                   #float
         self.min = min                   #float #5% of maximum
         self.slot = slot
@@ -98,7 +99,7 @@ class HoribaLF_F():
 
         self.currentSet = flowrate
 
-        command = 'AFC' + str(flowrate) + ',B' #command for setting the flowrate 'B' represents SCCM, a:ccm, b:g/min
+        command = 'AFC' + str(flowrate) + ','+ self.units #command for setting the flowrate 'B' represents SCCM, a:ccm, b:g/min
         print('P:' + command)
         checkSum = self.checksum(command)
         #forming the whole command in format @ + address + STX + commad + ETC + BCC

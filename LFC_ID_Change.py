@@ -126,12 +126,12 @@ class Lfc(object):
 
 if __name__ == '__main__':
 
-     lfc = Lfc('COM15', debug=False)
+     lfc = Lfc('COM8', debug=False)
      id = lfc.get_id()
      print('ID is: ', id)
-     ret = lfc.set_id(id + 1)
-     print('Set new id? ', ret)
-     print('new id: ', lfc.get_id())
+     #ret = lfc.set_id(id + 1)
+     #print('Set new id? ', ret)
+     #print('new id: ', lfc.get_id())
      #ret = lfc.set_id(id)
      #print('Set old id? ', ret)
      #print('new id: ', lfc.get_id())
