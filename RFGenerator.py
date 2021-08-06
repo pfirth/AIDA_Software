@@ -313,8 +313,9 @@ class TCPowerRFGenrator(object):
         ''' Set forward power setpoint.
         Enforces min/max power limits from init. '''
         self.currentSet = setpoint
+        sp = '{:.0f}'.format(float(setpoint))
         #setpoint = min(max(setpoint, self.min_power), self.max_power)
-        return self.send_cmd(0x5341, int(setpoint))
+        return self.send_cmd(0x5341, int(sp))
 
     def setForwardPowerLimit(self, limit):
         ''' Set forward power limit in hardware. '''

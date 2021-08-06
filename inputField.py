@@ -84,6 +84,8 @@ class InputField(GridLayout):
     def getTitle(self):
         return self.titleLabel.text
 
+
+
 class InputFieldVertical(GridLayout):
     def __init__(self,**kwargs):
         super(InputFieldVertical,self).__init__()
@@ -115,6 +117,9 @@ class InputFieldVertical(GridLayout):
         '''main loop will call this function once it sees an update
         has occurred and acts on it.'''
         self.fieldButton.wasUpdated = False
+
+    def setSetValue(self,strVal):
+        self.fieldButton.text = strVal
 
 def testFunc(**kwargs):
     if 'name' in kwargs:

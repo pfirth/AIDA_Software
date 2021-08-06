@@ -11,6 +11,7 @@ import pandas as pd
 import serial
 from inputButton import inputButton
 from ProcessScreen import ProcessScreen
+from FileSelect import FileSelectScreen
 from SettingsScreen import SettingsScreen
 from Load_Sample_PopUp_Menu import LoadSamplePopUpLogic
 from Maintenance_Screen import Maintenance_Screen
@@ -87,7 +88,26 @@ ParameterDictionary = {'title list':['a','a','a','a','a','a','a','a'],
                        'pneumaticStateChange':False, 'pneumaticSetCurret':'<2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1>',
                        'RF1On':False, 'RF1SetCurrent':'0', 'RF1StateChange':False,
                        'RF2On':False, 'RF2SetCurrent':'0', 'RF2StateChange':False,
-                       'encoderPostion':'0','Vent Channel':''}
+                       'encoderPostion':'0','Vent Channel':'',
+                       'new recipe':False,'recipe':''}
+
+
+def loadRecipe(RecipeFilePath,FieldList,StaticFieldList):
+    DF = pd.read_csv(RecipeFilePath)
+
+    for row in DF.iterrows():
+        slot = row[1]['Slot']
+        desc = row[1]['Des']
+        val = row[1]['Val']
+        type = row[1]['Type']
+        if val == val:
+            if type == 'P':
+                FieldList[slot].setSetValue(str(val))
+                print(slot,val,desc)
+            if type == 'M':
+                val = '{:.0f}'.format(float(val))
+
+                StaticFieldList[slot].setSetValue(str(val))
 
 class goBetween():
     def __init__(self,processScreen, gateValve,PLC,MFCList,BaratronList,RFGeneratorList,StageController,ParameterDictionary):
@@ -117,12 +137,11 @@ class goBetween():
         self.PLC.relayCurrent[self.ParameterDictionary['Pins Up']] = '0'
         self.PLC.updateRelayBank()
 
-
     def loadSample(self):
         self.previousState = self.currentState #log so we can send it back
         self.currentState = -2
-        sm.current = 'Load'
-
+        #sm.current = 'Load'
+        sm.current = 'file selection'
 
     def run(self):
         self.programRunning = True
@@ -356,13 +375,16 @@ class goBetween():
             field = self.inputFieldList[r.slot]
             field.setReadLabel(r.read())
 
+        if self.ParameterDictionary['new recipe']:
+            loadRecipe(self.ParameterDictionary['recipe'], self.inputFieldList,self.processScreen.staticFieldList)
+            self.ParameterDictionary['new recipe'] = False
+
+
         '''for f in self.inputFieldList:
             print(f.getTitle(), f.getSetValue())
         
         for f in self.processScreen.staticFieldList:
             print(f.getTitle(), f.getSetValue())'''
-
-
 
     def updateMFCSetpoints(self):
         for m in MFCList:
@@ -552,10 +574,11 @@ class goBetween():
 
 Maintenance_Screen = Maintenance_Screen('maintenance')
 MainScreen = ProcessScreen('main',ParameterDictionary)
-
+SelectFileScreen = FileSelectScreen('file selection',ParameterDictionary)
 
 sm.add_widget(MainScreen)
 sm.add_widget(Maintenance_Screen)
+sm.add_widget(SelectFileScreen)
 
 sm.current = 'main'
 

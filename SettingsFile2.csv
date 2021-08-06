@@ -1,18 +1,18 @@
 slot,type,Com,write address,read address,relay address,title,min,max
--1,ArduinoPLC,3,-1,-1,-1,-1,-1,-1
--1,ArduinoMotor,10,-1,-1,-1,-1,-1,-1
-0,HoribaZ500,6,3031,3031,18,1% SiH4,0,1000
-1,HoribaZ500,6,3032,3032,17,He (Sio2),0,50000
-2,HoribaZ500,6,3033,3033,14,Dry Air,0,30000
-3,HoribaZ500,6,3034,3034,15,N2,0,50000
-4,HoribaLF,8,3032,B,11,H2O Vap,0,10
-13,TCPower,9,2,"1, 0",1,RF +,0,600
-10,ButterflyValve,"5                                                                                       ",-1,"-1
+-1,ArduinoPLC,12,-1,-1,-1,-1,-1,-1
+-1,ArduinoMotor,5,-1,-1,-1,-1,-1,-1
+0,HoribaZ500,24,3031,3031,18,1% SiH4,0,1000
+1,HoribaZ500,24,3032,3032,17,He (Sio2),0,50000
+2,HoribaZ500,24,3033,3033,14,Dry Air,0,30000
+3,HoribaZ500,24,3034,3034,15,N2,0,50000
+4,HoribaLF,26,3032,B,11,H2O Vap,0,10
+13,TCPower,18,2,"1, 0",1,RF +,0,600
+10,ButterflyValve,"23          ",-1,"-1
 ",-1,MKS153D,0,"10000
 "
 12,AnalogBaratron,10,-1,6,-1,Top Pressure,0,100000
-5,HoribaLF,7,3031,b,16,TTIP Vap,0,5
-6,HoribaZ500,6,3035,3035,16,He (Tio2),0,50000
+5,HoribaLF,25,3031,b,16,TTIP Vap,0,5
+6,HoribaZ500,24,3035,3035,16,He (Tio2),0,50000
 8,Blank,8,0,4,3,Unused,0,200
 7,Blank,23,3038,3038,11,Unused,0,50000
 9,Pneumatic,10,-1,-1,20,Vent Channel,0,0

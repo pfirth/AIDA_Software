@@ -9,6 +9,9 @@ from kivy.uix.widget import Widget
 from Viewer_Pop_up import Viewer
 from functools import partial
 
+
+
+
 class inputButton(Button):
     '''This Button class just sets the background to the desired images'''
     def __init__(self,**kwargs):
@@ -83,6 +86,7 @@ class inputButton(Button):
 
         self.wasUpdated = False
         self.popUpOpened = False
+
 
     def updateText(self,button):
         if button.text == 'Clear':

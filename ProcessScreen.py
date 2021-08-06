@@ -16,6 +16,7 @@ from inputButton import inputButton
 from SettingsScreen import SettingsScreen
 import pandas as pd
 from swappableToggle import swapToggle
+from kivy.core.window import Window
 
 class controllerSensor():
     def __init__(self,slot, type, address, title, min, max):
@@ -33,6 +34,10 @@ class ProcessScreen(Screen):
 
         super(ProcessScreen,self).__init__(name = sceenname)
         self.setParameterDictionary = parameterDictionary
+
+
+        Window.bind(on_key_down=self._on_keyboard_down)
+
 
         self.main = GridLayout(rows = 3)
 
@@ -102,7 +107,7 @@ class ProcessScreen(Screen):
 
         self.grindGrid = GridLayout(rows = 2, cols = 1)
 
-        self.loadSampleButton = Button(text = 'Load Sample')
+        self.loadSampleButton = Button(text = 'Select Recipe')
 
         self.grindSpeedButton = Button(text = 'Another Screen')
         self.grindSpeedButton.bind(on_press = partial(self.changeScreen))
@@ -171,10 +176,12 @@ class ProcessScreen(Screen):
         #for num,field in enumerate(self.inputFieldList):
         #    field.setTitle(self.setParameterDictionary['title list'][num])
 
-        #set high and low values
-
     def on_leave(self):
-        print('leaving main screen')
+        pass
+        #print('leaving main screen')
+
+    def _on_keyboard_down(self, instance, keyboard, keycode, text, modifiers):
+        print(keycode)
 
 ParameteDictionary = {'title list':[],
                       'min list':[],
