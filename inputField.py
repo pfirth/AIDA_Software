@@ -34,7 +34,7 @@ class InputField(GridLayout):
         else:
             self.min = 0
 
-        self.fieldButton = inputButton(min = self.min,max = self.max)
+        self.fieldButton = inputButton(min = self.min,max = self.max,label = self.titleLabel.text)
         self.readLabel = Label(text = '-',font_size = '25sp',halign = 'left')
 
         self.add_widget(self.titleLabel)
@@ -80,6 +80,7 @@ class InputField(GridLayout):
 
     def setTitle(self,tit):
         self.titleLabel.text = tit
+        self.fieldButton.popupField.title = tit
 
     def getTitle(self):
         return self.titleLabel.text

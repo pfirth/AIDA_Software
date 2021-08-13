@@ -5,7 +5,7 @@ slot,type,Com,write address,read address,relay address,title,min,max
 1,HoribaZ500,24,3032,3032,17,He (Sio2),0,50000
 2,HoribaZ500,24,3033,3033,14,Dry Air,0,30000
 3,HoribaZ500,24,3034,3034,15,N2,0,50000
-4,HoribaLF,26,3032,B,11,H2O Vap,0,10
+4,HoribaLF,26,3031,B,11,H2O Vap,0,10
 13,TCPower,18,2,"1, 0",1,RF +,0,600
 10,ButterflyValve,"23          ",-1,"-1
 ",-1,MKS153D,0,"10000

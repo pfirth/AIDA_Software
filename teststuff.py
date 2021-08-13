@@ -27,22 +27,44 @@ def updateSheet(sheet,D):
     #updating the values
     sheet.append_row(toupdate)
 
-scope = ['https://spreadsheets.google.com/feeds',
-         'https://www.googleapis.com/auth/drive']
-cred = ServiceAccountCredentials.from_json_keyfile_name('aida-update-e3da1e0863cf.json',scope)
+def connectToSheet(sheetID):
+    scope = ['https://spreadsheets.google.com/feeds',
+             'https://www.googleapis.com/auth/drive']
+    cred = ServiceAccountCredentials.from_json_keyfile_name('aida-update-e3da1e0863cf.json', scope)
 
-client = gspread.authorize(cred)
+    client = gspread.authorize(cred)
+
+    try:
+        sheet = client.open_by_key(sheetID).sheet1
+        print('successfully connected to sheet')
+        return sheet
+    except Exception as e:
+        if 'Max retries exceeded with url' in str(e):
+            print('no internet!')
+            return -1
+
+        elif 'Requested entity was not found' in str(e):
+            print('bad sheet name')
+            return -1
+
+        elif 'The caller does not have permission' in str(e):
+            print('need to share sheet')
+            return -1
+
+        else:
+            print(str(e))
+            return -1
 
 D = {'Date':str(datetime.now()), 'time':2, 'Sample ID':3, 'Run ID':4,'test3':9, 'SiH4':5, 'He':6,'Test':7,'o2':60,
      'RF':5,'Pressure':5000}
-try:
-    sheet = client.open_by_key('1KfwftgVLMEHyujG-p6m1Kvqw07hqFSUgQVP4ldVyrN8').sheet1
+
+sheet = connectToSheet('1HVA9cyYvAC-fXiE51zEIgCcVA4PRgXLs6Lz4Gyfhx7Q')
+if sheet == -1:
+    pass
+else:
     updateSheet(sheet, D)
-except:
-    print('No Internet!')
 
-
-#
-
+#       '1KfwftgVLMEHyujG-p6m1Kvqw07hqFSUgQVP4ldVyrN8'
+#       '1HVA9cyYvAC-fXiE51zEIgCcVA4PRgXLs6Lz4Gyfhx7Q'
 
 

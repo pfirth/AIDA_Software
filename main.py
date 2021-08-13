@@ -12,9 +12,11 @@ import serial
 from inputButton import inputButton
 from ProcessScreen import ProcessScreen
 from FileSelect import FileSelectScreen
+from Maintenance_Screen import Maintenance_Screen
+
 from SettingsScreen import SettingsScreen
 from Load_Sample_PopUp_Menu import LoadSamplePopUpLogic
-from Maintenance_Screen import Maintenance_Screen
+
 #Equipment
 from Valve import Valve,gateValveOnly,MKS153D
 from ArduinoMegaPLC import ArduinoMegaPLC
@@ -89,7 +91,9 @@ ParameterDictionary = {'title list':['a','a','a','a','a','a','a','a'],
                        'RF1On':False, 'RF1SetCurrent':'0', 'RF1StateChange':False,
                        'RF2On':False, 'RF2SetCurrent':'0', 'RF2StateChange':False,
                        'encoderPostion':'0','Vent Channel':'',
-                       'new recipe':False,'recipe':''}
+                       'new recipe':False,'recipe':'','save recipe':False,
+                       'sheet_ID':'1KfwftgVLMEHyujG-p6m1Kvqw07hqFSUgQVP4ldVyrN8',
+                       'sheet':-1}
 
 
 def loadRecipe(RecipeFilePath,FieldList,StaticFieldList):
@@ -375,10 +379,9 @@ class goBetween():
             field = self.inputFieldList[r.slot]
             field.setReadLabel(r.read())
 
-        if self.ParameterDictionary['new recipe']:
+        '''if self.ParameterDictionary['new recipe']:
             loadRecipe(self.ParameterDictionary['recipe'], self.inputFieldList,self.processScreen.staticFieldList)
-            self.ParameterDictionary['new recipe'] = False
-
+            self.ParameterDictionary['new recipe'] = False'''
 
         '''for f in self.inputFieldList:
             print(f.getTitle(), f.getSetValue())

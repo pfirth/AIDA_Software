@@ -43,12 +43,16 @@ class FileSelectScreen(Screen):
 
     def selectfile(self):
         print(self.fileselect.selection)
+        try:
+            self.parameterdictionary['recipe'] = self.fileselect.selection[0]
+            self.parameterdictionary['new recipe'] = True
+            self.selectedrecipe = self.fileselect.selection
+            self.manager.current = 'main'
+        except IndexError:
+            self.manager.current = 'main'
 
-        self.parameterdictionary['recipe'] = self.fileselect.selection[0]
-        self.parameterdictionary['new recipe'] = True
-        self.selectedrecipe = self.fileselect.selection
-        self.manager.current = 'main'
-
+    def on_pre_enter(self, *args):
+        self.fileselect._update_files()
 
 
 sm = ScreenManager()
