@@ -122,6 +122,9 @@ class InputFieldVertical(GridLayout):
     def setSetValue(self,strVal):
         self.fieldButton.text = strVal
 
+    def getReadLabel(self):
+        return self.readLabel.text
+
 def testFunc(**kwargs):
     if 'name' in kwargs:
         name = kwargs['name']

@@ -40,9 +40,17 @@ class Maintenance_Screen(Screen):
         self.APLC = ''#APLC
         rows = 13
         cols = 2
-        self.positionDic = {0:'Blank',1:'RF Gen',2:'Open',3:'LL Lid',4:'Tio2 N2',5:'Tio2 He',6:'H2o vap',
+        '''self.positionDic = {0:'Blank',1:'RF Gen',2:'Open',3:'LL Lid',4:'Tio2 N2',5:'Tio2 He',6:'H2o vap',
                             7:'USD',8:'Dry Air',9:'Silane',10:'Sio2 Helium',11:'Man Lid - 11',12:'Main Lid - 12',13:'Wet Air',14:'Pins down',15:'pins up',16:'gate open',
-                            17:'gate closed',18:'LL Lid Open',19:'ISO - 19',20:'Main Vent',21:'Main Lid Open',22:"22"}
+                            17:'gate closed',18:'LL Lid Open',19:'ISO - 19',20:'Main Vent',21:'Main Lid Open',22:"22"}'''
+        self.positionDic = {}
+        settings = pd.read_csv('SettingsFile2.csv')
+        for row in settings.iterrows():
+            info = row[1]
+            title = info['title']
+            address = info['relay address']
+            self.positionDic[int(address)] = title
+            print(title,address)
 
 
         self.box = BoxLayout(orientation = 'vertical')
@@ -50,9 +58,16 @@ class Maintenance_Screen(Screen):
         self.main = GridLayout(rows = rows, cols = cols, size_hint = (1,0.75))
 
         #populating the rows with buttons to control the transistors
+        self.ButtonList = []
         for i in range((rows-2)*cols):
             B = TB()
-            B.text = self.positionDic[i]
+            self.ButtonList.append(B)
+            try:
+                B.text = self.positionDic[i] + ' ('+str(i) +')'
+
+            except KeyError:
+                B.text = str(i)
+
             B.position = i
 
             B.bind(on_press = self.cyclePneumatic)
@@ -115,6 +130,22 @@ class Maintenance_Screen(Screen):
                 self.APLC.changeVoltage('6',voltage)
             except ValueError:
                 print('not a number')
+
+    def on_pre_enter(self, *args):
+
+        try:
+            pneumaticstate = self.APLC.relayCurrent
+
+            for i,pneumatic in enumerate(pneumaticstate):
+                state = int(pneumatic)
+                if state ==1:
+                    self.ButtonList[i].state = 'down'
+                else:
+                    self.ButtonList[i].state = 'normal'
+
+        except AttributeError:
+            pass
+
 
 if __name__ == '__main__':
 

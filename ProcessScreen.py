@@ -276,7 +276,12 @@ class ProcessScreen(Screen):
             #getting the titles and values from the inputs
             for i in self.inputFieldList:
                 fieldtitle = i.getTitle()
-                fieldvalue = i.getSetValue()
+
+                if 'Pressure' in fieldtitle:
+                    fieldvalue = i.getReadLabel()
+                else:
+                    fieldvalue = i.getSetValue()
+
                 if fieldtitle in L:
                     pass
                 else:

@@ -113,6 +113,14 @@ def loadRecipe(RecipeFilePath,FieldList,StaticFieldList):
 
                 StaticFieldList[slot].setSetValue(str(val))
 
+
+def MFCcurrentRead(MFCList):
+    while True:
+        for m in MFCList:
+            m.read()
+
+
+
 class goBetween():
     def __init__(self,processScreen, gateValve,PLC,MFCList,BaratronList,RFGeneratorList,StageController,ParameterDictionary):
         self.processScreen = processScreen
@@ -432,8 +440,11 @@ class goBetween():
                 pass
 
     def turnOnRFGen(self):
-        for R in self.RFGeneratorList:
-            R.turnOn()
+        for r in self.RFGeneratorList:
+            currentSet = self.inputFieldList[r.slot].getSetValue()
+
+            if not r.on and float(r.currentSet) > 0:
+                r.turnOn()
 
     def turnOffRFGen(self):
         for R in self.RFGeneratorList:
@@ -574,7 +585,7 @@ class goBetween():
         else: #don't do anything
             pass
 
-
+#Interface
 Maintenance_Screen = Maintenance_Screen('maintenance')
 MainScreen = ProcessScreen('main',ParameterDictionary)
 SelectFileScreen = FileSelectScreen('file selection',ParameterDictionary)
@@ -592,6 +603,10 @@ comDic = {} #holds the comport number and the corresponding serial port object
 MFCList = [] #holds the MFC objects
 RFGenList = [] #holds RF generator objects
 BaratronList = [] #holds baratron objects
+
+GasMFCList = []
+LFCList = []
+
 
 for row in df.iterrows(): #iterate through each row of the excel file and adds in the right comonent.
     r = row[1]
@@ -616,7 +631,7 @@ for row in df.iterrows(): #iterate through each row of the excel file and adds i
         #create the MFC object
         m = HoribaZ500(PLC,r['relay address'],MFCconnection,str(r['write address']), str(r['read address']),
                 r['max'],r['min'],r['slot'])
-
+        GasMFCList.append(m)
         MFCList.append(m)
         MainScreen.inputFieldList[r['slot']].setTitle(r['title'])
         MainScreen.inputFieldList[r['slot']].setMinMax(min = float(r['min']),max = float(r['max']))
@@ -640,6 +655,7 @@ for row in df.iterrows(): #iterate through each row of the excel file and adds i
         #create the MFC object
         m = HoribaLF_F(PLC,r['relay address'],MFCconnection,str(r['write address']), str(r['write address']),
                        r['max'],r['min'],r['slot'],str(r['read address']))
+        LFCList.append(m)
         MFCList.append(m)
         MainScreen.inputFieldList[r['slot']].setTitle(r['title'])
         MainScreen.inputFieldList[r['slot']].setMinMax(min = float(r['min']),max = float(r['max']))
@@ -696,14 +712,22 @@ for row in df.iterrows(): #iterate through each row of the excel file and adds i
 
     else:
         ParameterDictionary['grindMotor'] = False
-        print('Didnt WORK!!!!!!!!!!!!!!',r['type'])
+
 
     if r['type'] == 'Blank':
         print(r['title'])
-        MainScreen.inputFieldList[r['slot']].setTitle(r['title'])
+        #MainScreen.inputFieldList[r['slot']].setTitle(r['title'])
 
 #need a catch in case one of the pieces of equipment is missing.
 GB2 = goBetween(MainScreen,gateValve,PLC,MFCList,BaratronList,RFGenList,StepperController,ParameterDictionary)
+
+#Threads
+'''t1 = Return_Thread(MFCcurrentRead,GasMFCList)
+t1.start()
+
+t2 = Return_Thread(MFCcurrentRead,LFCList)
+t2.start()'''
+
 LoadingScreen = LoadSamplePopUpLogic(ParameterDictionary,PLC,StepperController)
 sm.add_widget(LoadingScreen)
 
@@ -720,7 +744,7 @@ class SC300App(App):
         '''GB.programrunning = False
         time.sleep(0.25)
         GB.beforeExit()'''
-
+        t1.join()
     def build(self):
         return sm
 

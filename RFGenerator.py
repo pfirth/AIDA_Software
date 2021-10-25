@@ -79,6 +79,12 @@ class TCPowerRFGenrator(object):
     CMD_ADDR    = 0x01.to_bytes(1, BYTEORDER)
     RSP_HEAD    = 0x52.to_bytes(1, BYTEORDER)
 
+    MAX_CAP_COUNTS = 1005.  # Max digital readout for both caps
+    MAX_CAP_VDC = 5.  # Max VDC for both caps (actual is higher)
+    MIN_LOAD_VDC = 0.065  # Minimum actual VDC for load cap
+    MIN_TUNE_VDC = 0.095  # Minimum actual VDC for tune cap
+    CAP_F = MAX_CAP_VDC / MAX_CAP_COUNTS  # Digital -> VDC
+
     FMT_FLOAT = '{0:.0f}'
 
     def __init__(self, min_power, max_power, port, baud=38400, timeout=0.2,
@@ -280,6 +286,7 @@ class TCPowerRFGenrator(object):
     def turnOn(self):
         ''' Alias for rf '''
         self.on = True
+        print('Gen: ' + str(self.port))
         return self.rf(True)
 
     def turnOff(self):
@@ -331,6 +338,31 @@ class TCPowerRFGenrator(object):
         self.currentReflected = self.readReflectedPower()
         self.currentFormatted = self.currentFoward + '/' + self.currentReflected
         return self.currentFormatted
+
+    def getTunerStatus(self):
+        ''' Returns [STATUS] [LC POS] [TC POS] [VDC] [PRESET], 2 bytes each '''
+        # Get tuner status
+        response = self.send_cmd(0x4754, read=True)
+        # Convert from bytes to int
+        ret = []
+        for i in range(0, len(response), 2):
+            ret.append(self.from_bytes(response[i:i + 2]))
+        # Convert load/tune positions from counts to VDC
+        ret[1] = ret[1] * CAP_F + MIN_LOAD_VDC
+        ret[2] = ret[2] * CAP_F + MIN_TUNE_VDC
+        return ret
+
+    def getLoad(self):
+        ''' Return load cap position in VDC via getTunerStatus() '''
+        return self.getTunerStatus()[1]
+
+    def getTune(self):
+        ''' Return load cap position in VDC via getTunerStatus() '''
+        return self.getTunerStatus()[2]
+
+    def getTuneLoad(self):
+        ''' Return [tune, load] cap positions in VDC via getTunerStatus() '''
+        return self.getTunerStatus()[1:3]
 
 
 class Seren301(RFGenerator):
@@ -720,6 +752,8 @@ class Seren301(RFGenerator):
         ''' Read DC bias voltage
             0? and V? are the same command '''
         return int(self.send_cmd('V?', read=True))
+
+
 
 if __name__ == '__main__':
     '''PLC = ArduinoMegaPLC(3)
