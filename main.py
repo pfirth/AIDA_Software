@@ -9,6 +9,8 @@ from threading import Thread
 import time
 import pandas as pd
 import serial
+
+import RFGenerator
 from inputButton import inputButton
 from ProcessScreen import ProcessScreen
 from FileSelect import FileSelectScreen
@@ -24,7 +26,7 @@ from ArduinoMegaPLC import ArduinoMegaPLC
 from Motor_Control import ArduinoMotor
 from startStopSpeedMotor import startStopArduinoMotor
 
-from RFGenerator import RFX600,TCPowerRFGenrator
+from RFGenerator import RFX600,TCPowerRFGenrator,AEPinnaclePlus
 from Baratron import valveBaratron,analogBaratron
 from MassFlowController import HoribaZ500,HoribaLF_F, AnalogMFC
 
@@ -464,7 +466,8 @@ class goBetween():
             #this stops the computer from asking the valve for pressure readings during soft open
             self.ParameterDictionary['valveBusy'] = True
             self.processScreen.vacuumbutton.b.text = 'Wait! Pumping...'
-            self.gateValve.softOpen()
+            #self.gateValve.softOpen()
+            self.gateValve.Open()
             self.ParameterDictionary['valveBusy'] = False
             self.processScreen.vacuumbutton.b.text = 'Vacuum is OPEN'
 
@@ -597,7 +600,7 @@ sm.add_widget(SelectFileScreen)
 sm.current = 'main'
 
 #read from the CSV file
-df = pd.read_csv('SettingsFile2.csv')
+df = pd.read_csv('SettingsFile3.csv')
 
 comDic = {} #holds the comport number and the corresponding serial port object
 MFCList = [] #holds the MFC objects
@@ -675,6 +678,14 @@ for row in df.iterrows(): #iterate through each row of the excel file and adds i
         MainScreen.inputFieldList[r['slot']].setTitle(r['title'])
         MainScreen.inputFieldList[r['slot']].setMinMax(min = float(r['min']),max = float(r['max']))
 
+    if r['type'] == 'AEPinnaclePlus':
+        COM ='COM' + str(r['Com'])
+        instrument = RFGenerator.AEPinnaclePlus(port = COM, min=int(r['min']), max=int(r['max']),slot = r['slot'])
+        RFGenList.append(instrument)
+        MainScreen.inputFieldList[r['slot']].setTitle(r['title'])
+        MainScreen.inputFieldList[r['slot']].setMinMax(min = float(r['min']),max = float(r['max']))
+
+
 
     if r['type'] == 'Pneumatic':
         ParameterDictionary[r['title']] = int(r['relay address'])
@@ -744,7 +755,7 @@ class SC300App(App):
         '''GB.programrunning = False
         time.sleep(0.25)
         GB.beforeExit()'''
-        t1.join()
+
     def build(self):
         return sm
 
