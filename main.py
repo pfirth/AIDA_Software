@@ -26,7 +26,7 @@ from ArduinoMegaPLC import ArduinoMegaPLC
 from Motor_Control import ArduinoMotor
 from startStopSpeedMotor import startStopArduinoMotor
 
-from RFGenerator import RFX600,TCPowerRFGenrator,AEPinnaclePlus
+from RFGenerator import RFX600,TCPowerRFGenrator,AEPinnaclePlus,AG0613_old
 from Baratron import valveBaratron,analogBaratron
 from MassFlowController import HoribaZ500,HoribaLF_F, AnalogMFC
 
@@ -444,7 +444,8 @@ class goBetween():
     def turnOnRFGen(self):
         for r in self.RFGeneratorList:
             currentSet = self.inputFieldList[r.slot].getSetValue()
-
+            print('CS:')
+            print(float(r.currentSet))
             if not r.on and float(r.currentSet) > 0:
                 r.turnOn()
 
@@ -677,6 +678,14 @@ for row in df.iterrows(): #iterate through each row of the excel file and adds i
         RFGenList.append(instrument)
         MainScreen.inputFieldList[r['slot']].setTitle(r['title'])
         MainScreen.inputFieldList[r['slot']].setMinMax(min = float(r['min']),max = float(r['max']))
+
+    if r['type'] == 'AG0613_old':
+        COM ='COM' + str(r['Com'])
+        instrument = AG0613_old(port = COM, min_power=int(r['min']), max_power=int(r['max']),slot = r['slot'])
+        RFGenList.append(instrument)
+        MainScreen.inputFieldList[r['slot']].setTitle(r['title'])
+        MainScreen.inputFieldList[r['slot']].setMinMax(min = float(r['min']),max = float(r['max']))
+
 
     if r['type'] == 'AEPinnaclePlus':
         COM ='COM' + str(r['Com'])

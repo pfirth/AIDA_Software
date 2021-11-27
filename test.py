@@ -1,406 +1,454 @@
-'''
-Pinnacle Plus+ DC Power Supply
-Serial communication
-Dave Matthews, Swift Coat Inc, Oct 2021
-Setup
--- Port
-9 pin serial port labeled "AE Host". Located on AE Bus card, top rear of unit.
-If AE Bus card not present, can use 4-pin RJ14 jack.
-RJ14 cannot be used for communication if AE Bus card is present.
--- DIP switch positions
-11110011 where 1=up, 0=down
-Switches 0-4: unit address 1
-5-6: baud 9600
-7: RS-232
--- Communication, assuming DIP switch positions above
-Standard: RS-232
-Baud: 9600
-Parity: odd
-Start, data, stop bits: 1, 8, 1
-Byte order: Low-high
-Communication protocol
-Host (PC)                   Client (Power supply)
-----                        ----
-Send packet
-                            Receive packet, send ACK
-Receive ACK                 Send packet
-Receive packet, send ACK
-                            Receive ACK, retransmit if NAK
-'''
+# T&C Power Conversion AG 0613 600W RF Generator, "old style" communication
+# Dave Matthews, Swift Coat Inc, Nov 2021
 
-import math
+from power_supply import PowerSupply
+import queue
 import serial
-from bidict import bidict
+import threading
+import time
 
 
-class AEPinnaclePlus(object):
-    '''
-    Pinnacle Plus+ DC Power Supply
-    Serial communication
-    Dave Matthews, Swift Coat Inc, Oct 2021
-    Setup
-    -- Port
-    9 pin serial port labeled "AE Host". Located on AE Bus card, top rear of unit.
-    If AE Bus card not present, can use 4-pin RJ14 jack.
-    RJ14 cannot be used for communication if AE Bus card is present.
-    -- DIP switch positions
-    11110011 where 1=up, 0=down
-    Switches 0-4: unit address 1
-    5-6: baud 9600
-    7: RS-232
-    -- Communication, assuming DIP switch positions above
-    Standard: RS-232
-    Baud: 9600
-    Parity: odd
-    Start, data, stop bits: 1, 8, 1
-    Byte order: Low-high
-    Communication protocol
-    Host (PC)                   Client (Power supply)
-    ----                        ----
-    Send packet
-                                Receive packet, send ACK
-    Receive ACK                 Send packet
-    Receive packet, send ACK
-                                Receive ACK, retransmit if NAK
-    '''
+class AG0613_old(PowerSupply):
+    ''' "Old" style communication for AG0613 '''
 
+    BYTEORDER = "little"
 
-    ack = b'\x06'
-    nak = b'\x15'
-    byteorder = "little"
-    control_modes = bidict({
-        "serial": b'\x02',      # Serial (Host) port
-        "user": b'\x04',        # User port
-        "panel": b'\x06'})      # Active control panel
-    regulation_methods = bidict({
-        "power": b'\x06',
-        "voltage": b'\x07',
-        "current": b'\x08'})
-    regulation_decimals = {
-        "power": 0,             # Watts (manual uses kilowatts)
-        "voltage": 0,           # Volts
-        "current": 2}           # Amps
+    CMD_HEAD = b'\x97'
+    CMD_ADDR = b'\x01'
+    CMD_CTRL = b'\xAA'
 
-    def __init__(self,min, max, slot, port=None, baud=9600, address=1, timeout=1, debug=False):
-        self.debug = debug
-        self.address = address  # Also sets _header via @property
-        self.baud = baud
-        self.port = port
-        self.timeout = timeout
-        self.ser = None
-        if port:
-            self.connect()
+    KEYS_INIT = 0b101
 
+    @staticmethod
+    def crc8(msg):
+        ''' Generate checksum through arcane method given in manual '''
+        crc = 0
+        for b in msg:
+            for i in range(0, 8):
+                if (crc ^ b) & 0x01:
+                    crc = crc ^ 0x18
+                    crc = crc >> 1
+                    crc = crc | 0x80
+                else:
+                    crc = crc >> 1
+                    crc = crc & 0x7f
+                b = b >> 1
+        return crc
 
+    def __init__(self,slot=0,
+                 min_power=0,
+                 max_power=600,
+                 port=None,
+                 baud=19200,
+                 parity=serial.PARITY_NONE,
+                 timeout=0.2,
+                 line_term='',
+                 verbose=False):
+
+        # Params
+        self.max_power = max_power
+        self.min_power = min_power
+
+        # Serial communication
+        self.line_term = line_term
+
+        # Com thread
+        self.tx_queue = queue.SimpleQueue()
+        self.rx_queue = queue.SimpleQueue()
+        self.running = False
+        self.com_thread = threading.Thread(target=self.__com_loop)
+
+        #Software integration
         self.slot = slot
-        self.min = min
-        self.max = max
-        self.currentSet = 0
+        self.currentSet = '0'
+        self.currentFoward = '0'
+        self.currentFormatted = ''
+        self.currentReflected = ''
         self.on = False
 
-    # Helper functions
-    def print(self, msg):
-        if self.debug:
-            print(msg)
+        # State caching
+        self.state = {
+            'forward': None,
+            'reflected': None,
+            'requested': None,
+            'temperature': None,
+            'load_power': None,
+            'vswr': None,
+            'pmode': None,
+            'work_mode': None,
+            'pwr_on': None,
+            'over_heat': None,
+            'rev_limit': None,
+            'forward_limit': None,
+            'rf_on': None,
+            'burst_enable': None,
+            'burst_select': None,
+            'blank_loc_en': None,
+            'source': None,
+            'ilock': None,
+            'power_mode': None
+        }
+        self.keys = self.KEYS_INIT     # Stores key states as a binary value
 
-    def from_bytes(self, v):
-        ''' Takes bytes, returns int '''
-        return int.from_bytes(v, self.byteorder)
+        # Finish initialization and connect
+        super().__init__(port, baud, parity, timeout, verbose)
 
-    # I/O
+    def __com_loop(self):
+        ''' Serial communication loop
+        - Sends commands from self.tx_queue or get_status() if no command shows
+        up in tx_queue for over one second.
+        - Places responces in self.rx_queue.
+        - tx_queue messages are just bytestrings to send
+        - rx_queue messages are tuples:
+            (command id, received data or b'' if none)
+        - Continues until self.running == False. '''
+
+        # Connect
+        try:
+            ser = serial.Serial(self.port, self.baud, timeout=self.timeout)
+        except serial.SerialException as e:
+            print("RF: Failed to connect")
+            raise e
+
+        # Run send/receive loop until disconnect
+        while self.running:
+            # Wait one second for a real message, otherwise get status
+            try:
+                msg = self.tx_queue.get(timeout=1.0)
+            except queue.Empty:
+                self.get_status()
+                continue
+
+            ser.write(msg)
+            self.debug("> " + str(msg))
+            cmd_id = msg[4]   # Save command id for response queue
+
+            # Read until finding a head byte
+            # TODO: exit if too many retries
+            msg = ser.read()
+            n = 0
+            while msg != self.CMD_HEAD:
+                if n > 10:
+                    self.running = False
+                    break
+                self.debug(f"< {msg} discarded, waiting for {self.CMD_HEAD}")
+                msg = ser.read()
+                n += 1
+
+            # Get length
+            msg += ser.read()
+            # Read rest of message
+            length = msg[-1]
+            msg += ser.read(length)
+            self.debug("< ", msg)
+
+            # Verify address byte
+            if msg[3] != 0:
+                print(f"Received bad address byte: {msg[3]}")
+                continue
+
+            # Verify command id
+            cmd_in = msg[4]
+            if cmd_in != cmd_id:
+                print(f"Received response to wrong command: {cmd_in}, "
+                      + f"expected {cmd_id}")
+                continue
+
+            # Verify checksum
+            crc_in = msg[-1]
+            crc = self.crc8(msg[:-1])
+            if crc_in != crc:
+                print(f"Received bad checksum: {crc_in}, expected {crc}")
+                continue
+
+            # Put response in queue
+            data = msg[5:-1]    # will be b'' if no data received
+            self.rx_queue.put((cmd_in, data))
+            self.debug(f"put {data}")
+            time.sleep(0.02)
+
+        # Cleanup
+        ser.close()
+
     def connect(self):
-        ser = serial.Serial(
-            self.port,
-            self.baud,
-            parity=serial.PARITY_ODD,
-            timeout=self.timeout)
-        if not ser:
-            raise(Exception(f"Connection failed on port {self.port}"))
-        self.ser = ser
-        self.control_mode = "serial"
-        self.regulation_method = "power"
-        self.program_source = "internal"
+        if self.running:
+            return
+
+        # Start communication loop
+        self.running = True
+        self.com_thread.start()
+
+        # Init keys and self.state
+        self.set_key_state(self.KEYS_INIT)
+        self.get_power_measurement()
+        self.get_status()
 
     def disconnect(self):
-        self.control_mode = "panel"
-        if self.ser:
-            self.ser.close()
+        ''' Release control, then set flag to close com loop. '''
+        if not self.running:
+            return
 
-    def write(self, cmd, data=None):
-        ''' Packet structure
-        -- Header, 1 byte
-        5 bits: address of unit this packet is for / comes from
-        3 bits: data byte count, 0-7 w/o checksum; use Length byte if > 7
-        -- Command, 1 byte
-        Command being given / replied to
-        -- Length, 1 byte, optional; only used when header length bits == 111
-        Data byte count, 0-255 w/o checksum
-        -- Data, 0 to 255 bytes as specified above
-        If no data requested, this will be a 1-byte CSR (response) code.
-        CSR 0 = accepted
-        -- Checksum, 1 byte
-        Accumulated XOR value of all bytes up to, but not including, checksum
-        Including checksum should force accumulated XOR == 0
-        '''
+        # Release control end end communication loop
+        self.control = False
+        time.sleep(1.)
+        self.running = False
+        self.com_thread.join(2.)
 
-        if not self.ser:
-            return False
+    def assemble_cmd(self, cmd_id, data=b''):
+        ''' Internal function to format commands for sending. '''
 
-        n = 0
+        # Sub-frame
+        frame = self.CMD_ADDR
+        frame += cmd_id
+        frame += data
+
+        # Tx frame
+        tx = self.CMD_HEAD                         # Head
+        tx += self.to_bytes(len(frame) + 2, 1)     # Length (min 4)
+        tx += self.CMD_CTRL                        # Ctrl
+        tx += frame                                # Sub-frame
+        tx += self.to_bytes(self.crc8(tx))
+        return tx
+
+    def send_cmd(self, cmd_id, data=b''):
+        ''' Format and send a command, then wait for and return response.
+        Returns data, if expected; otherwise returns bool representing
+        whether command was acknowledged successfully.'''
+
+        if not self.running:
+            return
+
+        # Assemble and send command
+        msg = self.assemble_cmd(cmd_id, data)
+        self.tx_queue.put(msg)
+        cmd_id = self.from_bytes(cmd_id)
+
+        # Read receive queue until a response matches the correct id
         while True:
-            # Retries
-            n += 1
-            if n > 5:
+            try:
+                cmd_in, data = self.rx_queue.get(timeout=0.4)
+            except queue.Empty:
+                if self.running:
+                    print("ERROR -- RF: Failed to get response, command:")
+                    print("\t", msg)
                 return False
 
-            # Header and command bytes
-            msg = bytearray([self._header, cmd])
+            if cmd_in != cmd_id:
+                self.rx_queue.put((cmd_in, data))
+                self.debug("Put msg back in queue, expected"
+                           + f" cmd {cmd_id} but received cmd {cmd_in}")
+                time.sleep(0.05)
+            else:
+                break
 
-            # Data and length bytes
-            if data:
-                # Convert to bytes
-                if isinstance(data, bytes):
-                    pass
-                elif isinstance(data, int):
-                    # Pack into minimum amount of bytes necessary
-                    data = data.to_bytes(
-                        math.floor(data/256) + 1, self.byteorder)
-                elif isinstance(data, str):
-                    data = data.encode()
+        # Return data, or just True if no data received
+        return True if data == b'' else data
 
-                # Add data to msg with appropriate length
-                length = len(data)
-                if length < 7:
-                    # Length fits in last 3 bits of header byte
-                    msg[0] += length
-                else:
-                    # Length gets its own byte
-                    msg[0] += 7
-                    msg.append(length)
-                msg += data
+    # Command helpers --------------------------------------------------------
+    def get_str(self, cmd):
+        str = self.send_cmd(cmd)
+        if str:
+            str = str.decode()
+        return str
 
-            # Checksum byte
-            checksum = False
-            for b in msg:
-                checksum ^= b
-            msg.append(checksum)
+    def get_int(self, cmd):
+        val = self.send_cmd(cmd)
+        if val:
+            val = self.from_bytes(val)
+        return val
 
-            self.print(f"> {msg}")
-            self.ser.write(msg)
-
-            # Verify receipt
-            ack = self.ser.read()
-            self.print(f"< {ack}, ack")
-            if ack == self.ack:
-                return True
-            elif ack != self.nak:
-                return False
-
-
-    def readgen(self, cmd_chk=None):
-        if not self.ser:
+    # Status updates ---------------------------------------------------------
+    def get_power_measurement(self):
+        ''' Updates power state '''
+        data = self.send_cmd(b'\x10')
+        if not data:
             return False
 
-        def nak():
-            self.ser.write(self.nak)  # NAK
+        state = {
+            'forward': self.from_bytes(data[0:2]) / 10,
+            'reflected': self.from_bytes(data[2:4]) / 10,
+            'requested': self.from_bytes(data[4:6]) / 10,
+            'temperature': self.from_bytes(data[6:8]) / 10,
+            'load_power': self.from_bytes(data[8:10]) / 10,
+            'vswr': data[10:13],
+            'pmode': data[13]
+        }
+        for k, v in state.items():
+            self.state[k] = v
+        return True
 
-        data = None
-        n = 0
-        while True:
-            msg = bytearray()
+    def get_status(self):
+        data = self.send_cmd(b'\x18')
+        if not data or isinstance(data, bool):
+            return False
 
-            # Retries
-            n += 1
-            if n > 6:
-                break
-
-            # Header
-            header = self.ser.read()
-            self.print(f"> {header}, header")
-            if not header or header[0] >> 3 != self._address:
-                nak()
-                continue
-            msg += header
-
-            # Command code
-            cmd = self.ser.read()
-            self.print(f"> {cmd}, command code")
-            if not cmd or (cmd_chk and cmd[0] != cmd_chk):
-                nak()
-                continue
-            msg += cmd
-
-            # Data
-            length = header[0] & 7
-            if length > 0:
-                # Get length from length byte if needed
-                if length == 7:
-                    length = self.ser.read()
-                    msg += length
-                    self.print(f"> {length}, length byte")
-                # Get data
-                data = self.ser.read(length)
-                self.print(f"> {data}")
-                msg += data
-
-            # Checksum
-            chk = self.ser.read()
-            self.print(f"> {chk}, checksum")
-            msg += chk
-            checksum = 0
-            for b in msg:
-                checksum ^= b
-            if checksum == 0:
-                break
-            nak()
-
-        # ACK
-        self.ser.write(self.ack)
-        return data
-
-    def command(self, cmd, data=None):
-        ''' Write/read cycle. All commands generate an ACK and response packet.
-        '''
-        self.write(cmd, data)
-        return self.readgen(cmd)
-
-    # Test command
-    def null(self):
-        self.command(0)
-
-    # Properties -------------------------------------------------------------
-
-    # Test property
-    @property
-    def supply_type(self):
-        return self.command(128).decode()
-
-    # Unit to address
-    @property
-    def address(self):
-        return self._address
-
-    @address.setter
-    def address(self, address):
-        ''' Set _address and prepare _header for read/write '''
-        self._address = address
-        self._header = address << 3     # First 5 bits of header byte
-
-    # Control mode
-    @property
-    def control_mode(self):
-        return self.control_modes.inverse[self.command(155)]
-
-    @control_mode.setter
-    def control_mode(self, mode):
-        mode = mode.lower()
-        if mode not in self.control_modes:
-            raise(ValueError(f"Cannot set unknown control mode: {mode}"))
-        self.command(14, self.control_modes[mode])
-
-    @property
-    def program_source(self):
-        config = self.debug_config
-        source = "internal" if config[0] & 128 == 0 else "external"
-        return source
-
-    @program_source.setter
-    def program_source(self, source):
-        ''' Source is set separately per control mode; this just sets all 3 '''
-        err = ValueError(f"Can't set unknown program source: {source}")
-        if not isinstance(source, str):
-            raise err
-        elif source == "internal":
-            b = b'\x00'
-        elif source == "external":
-            b = b'\x01'
+        work_mode = data[0]
+        if work_mode & 2:
+            work_mode = "local"
+        elif work_mode & 1:
+            work_mode = "gui"
         else:
-            raise err
-        self.command(17, b + b'\x00\x01')
+            work_mode = "remote"
 
-    # Output power state
+        flags = self.from_bytes(data[1:3])
+
+        state = {
+            'work_mode': work_mode,
+            'pwr_on': bool(flags & 0b1),
+            'over_heat': bool(flags & 0b10),
+            'rev_limit': bool(flags & 0b100),
+            'forward_limit': bool(flags & 0b1000),
+            'rf_on': bool(flags & 0b10000),
+            'burst_enable': bool(flags & 0b10000),
+            'burst_select': bool(flags & 0b100000),
+            'blank_loc_en': bool(flags & 0b1000000),
+            'source': bool(flags & 0b10000000),
+            'ilock': bool(flags & 0b100000000),
+            'power_mode': bool(flags & 0b1000000000000),
+        }
+        for k, v in state.items():
+            self.state[k] = v
+
+        keys = 0
+        keys += state['work_mode'] == "gui"
+        keys += state['rf_on'] << 1
+        keys += state['source'] << 2
+        keys += state['blank_loc_en'] << 3
+        keys += state['burst_enable'] << 4
+        keys += state['burst_select'] << 5
+        keys += state['power_mode'] << 6
+        self.keys = keys
+
+        return True
+
+    # Commands from manual ---------------------------------------------------
     @property
-    def debug_output(self):
-        return self.command(161)
+    def version(self):
+        versions = self.send_cmd(b'\x01')
+        self.debug(f"Versions: \n\tfamily: {self.from_bytes(versions[0])}"
+                   + f"\n\thardware: {self.from_bytes(versions[1])}"
+                   + f"\n\tfirmware: {self.from_bytes(versions[2:])}")
+        return versions
 
     @property
-    def debug_status(self):
-        return self.command(162)
+    def serial(self):
+        return self.get_str(b'\x02')
 
     @property
-    def debug_config(self):
-        return self.command(163)
+    def device_name(self):
+        return self.get_str(b'\x03')
 
     @property
-    def debug_faults(self):
-        return self.command(208, b'\x00')
+    def scales(self):
+        scales = self.send_cmd(b'\x0A')
+        scales = scales.split(b'\x00')
+        ret = []
+        for scale in scales:
+            ret.append(scale.decode())
+        return ret
+
+    @property
+    def setpoint(self):
+        return self.get_int(b'\x13') / 10
+
+    @setpoint.setter
+    def setpoint(self, pwr):
+        ''' Set requested power in Watts'''
+        # round(pwr*10) converts to 100 mW units as used by power supply
+        return self.send_cmd(b'\x11', self.to_bytes(round(pwr*10), 2))
+
+    # def set_percentage_power_level(self, pwr):
+    #     # Cap between 0-100
+    #     pwr = max(min(pwr, 100), 0)
+    #     # Handle fractional power levels
+    #     if pwr < 1:
+    #         pwr *= 100
+    #     # Convert to mW units
+    #     pwr = round(pwr * 10)
+    #     return self.send_cmd(b'\x14', self.to_bytes(pwr))
+
+    # Keystate settings ------------------------------------------------------
+    def set_key_state(self, keys):
+        ''' Set new states for all keys at once
+            (no way to do these individually) '''
+        # Set key state
+        success = self.send_cmd(b'\x19', self.to_bytes(keys))
+        if not success:
+            return False
+        # Update state
+        self.get_status()
+        return True
+
+    def set_key_bit(self, bit, on=True):
+        if on:
+            keys = self.keys | bit
+        else:
+            keys = ~self.keys
+            keys = keys | bit
+            keys = ~keys
+        return self.set_key_state(keys)
+
+    @property
+    def control(self):
+        return self.state['work_mode']
+
+    @control.setter
+    def control(self, control):
+        self.set_key_bit(0b1, bool(control))
 
     @property
     def output(self):
-        # command returns full process status; output is byte 1, bit 4
-        return self.command(162)[0] & 8
+        return self.state['rf_on']
 
     @output.setter
     def output(self, output):
-        ''' Setting output to False will work even when in local control '''
-        self.command(2 if output else 1)
-
-    # Output regulation method
-    @property
-    def regulation_method(self):
-        return self.regulation_methods.inverse[self.command(154)]
-
-    @regulation_method.setter
-    def regulation_method(self, method):
-        method = method.lower()
-        if method not in self.regulation_methods:
-            raise(ValueError(f"Cannot set unknown regulation method: {method}"))
-        self.command(3, self.regulation_methods[method])
-
-    # Output setpoint
-    @property
-    def setpoint(self):
-        # command returns setpoint (bytes 1-2) and regulation mode (byte 3)
-        status = self.command(164)
-        # Divide by appropriate number of decimal places for regulation method
-        regulation_method = self.regulation_methods.inverse[bytes([status[2]])]
-        setpoint = self.from_bytes(status[:2])
-        setpoint /= 10 ** self.regulation_decimals[regulation_method]
-        return setpoint
-
-    @setpoint.setter
-    def setpoint(self, setpoint):
-        ''' Changing setpoint while power is on will obey any set ramp rate '''
-        # Use appropriate number of decimal places for regulation method
-        decimals = self.regulation_decimals[self.regulation_method]
-        setpoint = round(setpoint * 10**decimals)
-        # Setpoint must be a two-byte value
-        self.command(6, setpoint.to_bytes(2, self.byteorder))
-
-    # Read-only power delivery
-    # Can also request all 3 at once with cmd 168
-    @property
-    def forward_power(self):
-        return self.from_bytes(self.command(165))         # Watts
+        self.set_key_bit(0b10, bool(output))
 
     @property
-    def forward_voltage(self):
-        return self.from_bytes(self.command(166))         # Volts
+    def source(self):
+        return self.state['source']
+
+    @source.setter
+    def source(self, source):
+        if source not in ("internal", "external"):
+            raise ValueError('Source value must be "internal" or "external"')
+        self.set_key_bit(0b100, source == "external")
 
     @property
-    def forward_current(self):
-        decimals = self.regulation_decimals["current"]
-        return self.from_bytes(self.command(167)) / 10**decimals
+    def blanking(self):
+        return self.state['blank_loc_en']
+
+    @blanking.setter
+    def blanking(self, blanking):
+        self.set_key_bit(0b1000, bool(blanking))
 
     @property
-    def arc_density(self):
-        ''' Return total density of arcs per second (micro and hard arcs) '''
-        resp = self.command(188)
-        micro = self.from_bytes(resp[:2])
-        hard = self.from_bytes(resp[2:])
-        return micro + hard
+    def burst_enable(self):
+        return self.state['burst_enable']
 
-    # Specced functions ------------------------------------------------------
+    @burst_enable.setter
+    def burst_enable(self, burst):
+        self.set_key_bit(0b10000, bool(burst))
+
+    @property
+    def burst_select(self):
+        return self.state['burst_select']
+
+    @burst_select.setter
+    def burst_select(self, burst):
+        self.set_key_bit(0b100000, bool(burst))
+
+    @property
+    def power_mode(self):
+        return self.state['power_mode']
+
+    @power_mode.setter
+    def power_mode(self, mode):
+        if mode not in ("load", "forward"):
+            raise ValueError('Power mode must be "load" or "forward"')
+        self.set_key_bit(0b1000000, mode == "load")
+
+    # Specced methods --------------------------------------------------------
     def turnOn(self):
         self.on = True
         self.output = True
@@ -409,16 +457,16 @@ class AEPinnaclePlus(object):
         self.on = False
         self.output = False
 
-    def setFowardPower(self, power):
-        self.currentSet = power
-        self.setpoint = float(power)
+    def setFowardPower(self, pwr):
+        self.setpoint = float(pwr)
 
     def readFowardPower(self):
-        return str(self.forward_power)
+        self.get_power_measurement()
+        return self.state['forward']
 
     def readReflectedPower(self):
-        ''' Actually returns arc density per second '''
-        return str(self.arc_density)
+        self.get_power_measurement()
+        return self.state['reflected']
 
     def read(self):
         self.currentFoward = self.readFowardPower()
@@ -426,31 +474,27 @@ class AEPinnaclePlus(object):
         self.currentFormatted = self.currentFoward + '/' + self.currentReflected
         return self.currentFormatted
 
-if __name__ == "__main__":
-     import time
-#
-     pwr = AEPinnaclePlus(port='COM12', min = 0,max = 5000,slot = 1)
-     print(pwr.supply_type)
-     #pwr.setpoint = 123
-#     print(pwr.control_mode)
-#     print(pwr.regulation_method)
-#     print(pwr.setpoint)
-#     print(pwr.program_source)
-#
-#     # pwr.setpoint = 100
-#     # print(pwr.setpoint)
-#     # print(pwr.output)
-#     # print(pwr.forward_power)
-#     # print(pwr.readReflectedPower())
 
-     time.sleep(1)
-#     print(pwr.debug_output)
-#     print(pwr.debug_status)
-#     print(pwr.debug_config)
-#     print(pwr.debug_faults)
-#     # print(pwr.setpoint)
-#     # print(pwr.output)
-#     # print(pwr.forward_power)
-#     # print(pwr.readReflectedPower())
+class TCPowerRFGenerator(AG0613_old):
+    ''' Compatibility '''
+    pass
 
-#     pwr.disconnect()
+
+class TCPowerRFGenrator(AG0613_old):
+    ''' Typo compatibility '''
+    pass
+
+
+if __name__ =='__main__':
+    Gen = AG0613_old(port = 'COM17')
+    a = Gen.readReflectedPower()
+    Gen.setForwardPower(35)
+    Gen.turnOn()
+    time.sleep(5)
+    Gen.turnOff()
+    time.sleep(5)
+    Gen.setForwardPower(25)
+    Gen.turnOn()
+    time.sleep(5)
+    Gen.turnOff()
+    print(a)

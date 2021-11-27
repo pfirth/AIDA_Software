@@ -95,7 +95,7 @@ class ArduinoMegaPLC(SerialDevice):
         newVoltage = 5*(int(newVoltage)/self.DataDic[slotNumber]['max'])
         command = '<1,'+str(self.DataDic[slotNumber]['writeAddress'])+','+str(newVoltage)+'>'
         command = str.encode(command)
-
+        print(command)
         self.writeCommand(self.connection,command)
 
 
@@ -111,6 +111,8 @@ class ArduinoMegaPLC(SerialDevice):
 
     def changeVoltage(self,writeChannel,newVoltage):
         command = '<1,'+str(writeChannel)+','+str(newVoltage)+'>'
+
+
         command = str.encode(command)
         self.writeCommand(self.connection,command)
 

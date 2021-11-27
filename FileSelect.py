@@ -29,7 +29,7 @@ class FileSelectScreen(Screen):
         self.add_widget(self.main)
 
         self.fileselect = FileChooserListView(size_hint = (1,1))
-        self.fileselect.path ='C:\\Users\\peter\\PycharmProjects\\AIDA_Software-3\\Recipes'
+        self.fileselect.path ='C:\\Users\\Test station\\PycharmProjects\\AIDA_Software\\Recipes'
         self.fileselect.filters = ['*.csv']
 
 
