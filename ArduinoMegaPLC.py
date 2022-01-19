@@ -68,7 +68,6 @@ class ArduinoMegaPLC(SerialDevice):
         dataList = [float(_15bitValue)/(29790-29790*0.1) for _15bitValue in dataList]
 
         self.analogPercents = dataList
-
         return float(dataList[3])*30000
 
     def convertToHumanValue(self,fraction,max):
