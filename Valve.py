@@ -329,11 +329,12 @@ class MKS153D():
             print(command)
             time.sleep(10)
 
-
-
         print('full open')
         self.Open()
 
+    def Learn0(self):
+        self.connection.write(b'Z2')
+        self.__receivedata(False,"F")
 
         #`  self.connection.write(b'O\r')
 
@@ -398,7 +399,7 @@ class gateValveOnly():
     time.sleep(0.25)'''
 
 if __name__ == '__main__':
-    X = MKS153D(7,1000)
+    X = MKS153D(5,10000)
     #X.Open()
     X.Close()
     #time.sleep(5)

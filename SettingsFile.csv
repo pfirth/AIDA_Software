@@ -7,9 +7,7 @@ slot,type,Com,write address,read address,relay address,title,min,max
 3,HoribaZ500,19,3033,3033,11,N2,0,3000
 4,Blank,8,3035,3035,14,-,0,10000
 13,RFX600,-1,2,"1, 0",1,RF +,0,600
-10,ButterflyValve,21,-1,"-1
-",-1,MKS153D,0,"10000
-"
+10,ButterflyValve,21,-1,"-1",-1,MKS153D,0,"10000"
 12,AnalogBaratron,10,-1,6,-1,Top Pressure,0,100000
 5,Blank,6,3031,3031,10,-,0,3
 6,HoribaLF,20,3031,3031,5,IPA,0,10
