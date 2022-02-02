@@ -8,7 +8,7 @@ from kivy.uix.popup import Popup
 from kivy.uix.widget import Widget
 from Viewer_Pop_up import Viewer
 from functools import partial
-
+import datetime
 
 class inputButton(Button):
     '''This Button class just sets the background to the desired images'''
@@ -163,6 +163,16 @@ class TextInputButton(Button):
         else:
             self.button_label = ''
 
+        if 'sampleID' in kwargs:
+            D = str(datetime.datetime.now())
+            D = D.split(' ')[0]
+            Y, M, D = D.split('-')
+            ID = 'PF' + Y[2:] + M + D + '-'
+            self.sampleIDText = ID
+        else:
+            self.popUpTextInput = TextInput(font_size=35, multiline=False)
+            self.sampleIDText = ''
+
         self.text = self.button_label
         self.popUpBoxLayout = BoxLayout(orientation='vertical')
 
@@ -214,7 +224,7 @@ class TextInputButton(Button):
         self.popUpTextInput.focus = True
 
     def openPopup(self, arg):
-        self.popUpTextInput.text = ''
+        self.popUpTextInput.text = self.sampleIDText
         self.popUpOpened = True
         self.popupField.open()
 

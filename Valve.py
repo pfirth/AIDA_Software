@@ -279,8 +279,9 @@ class MKS153D():
     def getPressure(self):
         self.connection.write(b'R5\r')
         ret = self.__receivedata(False,'')
-
+        print(ret)
         ret = ret[1:]
+
         try:
             pressure = str(float(self.maxPressure)*float(ret)/100)
             self.current_pressure = pressure
@@ -401,7 +402,16 @@ class gateValveOnly():
 if __name__ == '__main__':
     X = MKS153D(5,10000)
     #X.Open()
-    X.Close()
+    count = 0
+
+    while True:
+
+        X.getPressure()
+        time.sleep(2)
+        X.Learn0()
+        time.sleep(2)
+        count+=1
+        print(count)
     #time.sleep(5)
     #X.Close()
     #print(X.getSensorScale())

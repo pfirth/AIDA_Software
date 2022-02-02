@@ -115,7 +115,7 @@ class ProcessScreen(Screen):
 
         self.loadSampleButton = Button(text = 'Select Recipe')
         self.saveRecipeButton = TextInputButton(popup_label='Recipe Filename', button_label='Save Recipe:')
-        self.sampleIDButton = TextInputButton(popup_label='Sample ID', button_label='Sample ID:')
+        self.sampleIDButton = TextInputButton(popup_label='Sample ID', button_label='Sample ID:',sampleID = True)
         self.uploadParametersButton = Button(text='Save to Sheets')
 
         self.grindSpeedButton = Button(text = 'Maintenance Menu')
