@@ -465,6 +465,7 @@ class goBetween():
             self.ParameterDictionary['valveBusy'] = True
             self.processScreen.vacuumbutton.b.text = 'Wait! Pumping...'
             self.gateValve.softOpen()
+            #self.gateValve.Open()
             self.ParameterDictionary['valveBusy'] = False
             self.processScreen.vacuumbutton.b.text = 'Vacuum is OPEN'
 
@@ -481,7 +482,7 @@ class goBetween():
             if 'Gate Valve' in self.ParameterDictionary.keys():#opening up a gate valve
                 print('GV!!!!!!!!!!')
                 self.PLC.relayCurrent[self.ParameterDictionary['Gate Valve']] = '1'
-                self.PLC.relayCurrent[self.ParameterDictionary['Gate Valve Close']] = '0'
+                #self.PLC.relayCurrent[self.ParameterDictionary['Gate Valve Close']] = '0'
                 self.PLC.updateRelayBank()
 
             if self.ParameterDictionary['isVented']:
@@ -496,7 +497,7 @@ class goBetween():
             if 'Gate Valve' in self.ParameterDictionary.keys():#opening up a gate valve
                 print('GV Close!!!!!!!!!!')
                 self.PLC.relayCurrent[self.ParameterDictionary['Gate Valve']] = '0'
-                self.PLC.relayCurrent[self.ParameterDictionary['Gate Valve Close']] = '1'
+                #self.PLC.relayCurrent[self.ParameterDictionary['Gate Valve Close']] = '1'
                 self.PLC.updateRelayBank()
 
             self.gateValve.interrupt = True #stops the soft pump routine if it's in

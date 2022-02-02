@@ -13,8 +13,7 @@ class ArduinoMegaPLC(SerialDevice):
 
         self.DataDic = {}
 
-        self.relayCurrent = ['0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0',
-                             '0','0','0','0','0','0']
+        self.relayCurrent = ['0']*32
 
         self.analogPercents = [0,0,0,0,0,0,0]
 
@@ -64,7 +63,7 @@ class ArduinoMegaPLC(SerialDevice):
         self.writeCommand(self.connection,b'<3>')
         rawData = str(self.receiveData(self.connection),"utf-8")
         dataList = rawData.split(',')
-
+        #print(dataList)
         dataList = [float(_15bitValue)/(29790-29790*0.1) for _15bitValue in dataList]
 
         self.analogPercents = dataList

@@ -38,7 +38,7 @@ class Maintenance_Screen(Screen):
     def __init__(self,screenname):
         super(Maintenance_Screen,self).__init__(name = screenname)
         self.APLC = ''#APLC
-        rows = 13
+        rows = 18
         cols = 2
         '''self.positionDic = {0:'Blank',1:'RF Gen',2:'Open',3:'LL Lid',4:'Tio2 N2',5:'Tio2 He',6:'H2o vap',
                             7:'USD',8:'Dry Air',9:'Silane',10:'Sio2 Helium',11:'Man Lid - 11',12:'Main Lid - 12',13:'Wet Air',14:'Pins down',15:'pins up',16:'gate open',
