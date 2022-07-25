@@ -164,12 +164,14 @@ class TextInputButton(Button):
             self.button_label = ''
 
         if 'sampleID' in kwargs:
+            self.sampleID = True
             D = str(datetime.datetime.now())
             D = D.split(' ')[0]
             Y, M, D = D.split('-')
             ID = 'PF' + Y[2:] + M + D + '-'
             self.sampleIDText = ID
         else:
+            self.sampleID = False
             self.popUpTextInput = TextInput(font_size=35, multiline=False)
             self.sampleIDText = ''
 
@@ -224,6 +226,17 @@ class TextInputButton(Button):
         self.popUpTextInput.focus = True
 
     def openPopup(self, arg):
+        print('open pop')
+        if self.sampleID:
+            D = str(datetime.datetime.now())
+            D = D.split(' ')[0]
+            Y, M, D = D.split('-')
+            ID = 'PF' + Y[2:] + M + D + '-'
+            self.sampleIDText = ID
+        else:
+            #self.popUpTextInput = TextInput(font_size=35, multiline=False)
+            self.sampleIDText = ''
+
         self.popUpTextInput.text = self.sampleIDText
         self.popUpOpened = True
         self.popupField.open()
@@ -239,10 +252,10 @@ class TextInputButton(Button):
             self.min = kwargs['min']
 
     def changeText(self, arg):
-        print('text changed')
+        print('text changed-')
         # sets a flag so that the main loop can see something was changed and it needs to act
         self.wasUpdated = True
-
+        print('txt:'+ self.popUpTextInput.text)
         self.text = self.button_label + '\n' + self.popUpTextInput.text
 
 

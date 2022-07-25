@@ -163,6 +163,7 @@ class ArduinoMotor():
                 self.communicationDic[command[0]](command[1])
             except KeyError:
                 print('received a value I did not expect... Motor_Control line 63')
+                print(self.communicationDic)
             return rec
 
     def updateLoopCount(self,count):

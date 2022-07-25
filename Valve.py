@@ -279,7 +279,6 @@ class MKS153D():
     def getPressure(self):
         self.connection.write(b'R5\r')
         ret = self.__receivedata(False,'')
-        print(ret)
         ret = ret[1:]
 
         try:

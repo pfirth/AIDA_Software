@@ -340,7 +340,8 @@ class ProcessScreen(Screen):
         client = gspread.authorize(cred)
 
         try:
-            sheet = client.open_by_key(sheetID).sheet1
+            sheet = client.open_by_key(sheetID)
+            sheet = sheet.worksheet('SC501')
             print('successfully connected to sheet')
             self.uploadParametersButton.text = 'Save to Sheets\n(Successful Connection)'
             self.setParameterDictionary['sheet'] = sheet

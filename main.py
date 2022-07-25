@@ -464,8 +464,8 @@ class goBetween():
             #this stops the computer from asking the valve for pressure readings during soft open
             self.ParameterDictionary['valveBusy'] = True
             self.processScreen.vacuumbutton.b.text = 'Wait! Pumping...'
-            self.gateValve.softOpen()
-            #self.gateValve.Open()
+            #self.gateValve.softOpen()
+            self.gateValve.Open()
             self.ParameterDictionary['valveBusy'] = False
             self.processScreen.vacuumbutton.b.text = 'Vacuum is OPEN'
 

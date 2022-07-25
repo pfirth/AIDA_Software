@@ -1,21 +1,21 @@
 slot,type,Com,write address,read address,relay address,title,min,max
 -1,ArduinoPLC,3,-1,-1,-1,-1,-1,-1
--1,ArduinoMotor,4,-1,-1,-1,-1,-1,-1
+-1,ArduinoMotor,10,-1,-1,-1,-1,-1,-1
 0,HoribaZ500,6,3031,3031,18,1% SiH4 (A),0,10000
 1,HoribaZ500,6,3032,3032,17,He (A),0,50000
 2,HoribaZ500,6,3033,3033,14,CDA (A),0,30000
-3,HoribaZ500,6,3034,3034,11,N2 (A),0,50000
-4,Blank,6,3037,30347,3,N2O (A),0,5000
-5,HoribaLF,8,3031,b,-1,H2O (A),0,20
-6,TCPower,9,2,"1, 0",1,RF (A),0,600
-7,HoribaLF,7,3031,b,-1,TTIP (B),0,5
-8,HoribaZ500,6,3036,3036,16,N2-Vap (B),0,50000
-9,HoribaZ500,6,3035,3035,15,He (B),0,50000
-10,AG0613_old,12,2,"1, 0",1,RF (B),0,600
+3,HoribaZ500,6,3034,3034,11,N2 (A),0,30000
+4,HoribaLF,8,3031,b,-1,H2O (A),0,20
+5,TCPower,9,2,"1, 0",1,RF (A),0,600
+6,HoribaZ500,6,3035,3035,-1,1% SiH4 (B),0,10000
+7,HoribaZ500,6,3036,3036,-1,He (B),0,50000
+8,HoribaZ500,6,3037,3037,-1,CDA (B),0,10000
+9,HoribaZ500,6,3038,3038,-1,N2 (B),0,30000
+10,Blank,7,3031,a,-1,H2O (B),0,10
 14,ButterflyValve,5,-1,-1,-1,MKS153D,0,10000
 11,ValveBaratron,-1,-1,-1,-1,Bottom Pressure,0,10000
-12,AnalogBaratron,10,-1,6,-1,SiO2 Pressure,0,100000
-13,AnalogBaratron,10,-1,7,-1,TiO2 Pressure,0,100000
+12,AnalogBaratron,10,-1,6,-1,SiO2 (A) Pressure,0,100000
+13,AnalogBaratron,10,-1,7,-1,SiO2 (B) Pressure,0,100000
 9,Pneumatic,10,-1,-1,20,Vent Channel,0,0
 11,Pneumatic,10,-1,-1,21,Open Channel,7,0
 12,NA,10,-1,-1,-1,Close Channel,0,0

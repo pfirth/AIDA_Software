@@ -272,7 +272,6 @@ class HoribaLF_F():
             self.pneumaticController.relayCurrent[self.pneumaticAddress] = '1'
             self.pneumaticController.updateRelayBank()
 
-
     def turnOffPneumatic(self):
 
         if self.pneumaticAddress == -1:  # if there is no pneumatic associated with the mfc
@@ -530,7 +529,6 @@ class HoribaZ500():
         else:
             self.pneumaticController.relayCurrent[self.pneumaticAddress] = '1'
             self.pneumaticController.updateRelayBank()
-
 
     def turnOffPneumatic(self):
         if self.pneumaticAddress == -1: #if there is no pneumatic associated with the mfc

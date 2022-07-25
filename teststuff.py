@@ -62,7 +62,7 @@ sheet = connectToSheet('1HVA9cyYvAC-fXiE51zEIgCcVA4PRgXLs6Lz4Gyfhx7Q')
 if sheet == -1:
     pass
 else:
-    updateSheet(sheet, D)
+    pass
 
 #       '1KfwftgVLMEHyujG-p6m1Kvqw07hqFSUgQVP4ldVyrN8'
 #       '1HVA9cyYvAC-fXiE51zEIgCcVA4PRgXLs6Lz4Gyfhx7Q'

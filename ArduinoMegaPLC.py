@@ -16,7 +16,7 @@ class ArduinoMegaPLC(SerialDevice):
         self.relayCurrent = ['0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0',
                              '0','0','0','0','0','0']
 
-        self.analogPercents = [0,0,0,0,0,0,0]
+        self.analogPercents = [0,0,0,0,0,0,0,0]
 
     #def writeCommand(self,command):
     #    self.connection.write(command)

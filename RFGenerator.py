@@ -424,6 +424,7 @@ class AG0613_old():
             self.ser.read()
 
         while True:
+
             r = bytearray()
             #if there are no commands to write
             if self.TXQ.empty():
@@ -434,8 +435,10 @@ class AG0613_old():
                 while self.ser.inWaiting() >0:
                     r.extend(self.ser.read())
 
-                    self.currentFoward = str(int.from_bytes(r[5:7], byteorder='little') / 10)
-                    self.currentReflected = str(int.from_bytes(r[7:10], byteorder='little') / 10)
+
+                self.currentFoward = str(int.from_bytes(r[5:7], byteorder='little') / 10)
+                self.currentReflected = str(int.from_bytes(r[7:10], byteorder='little') / 10)
+
 
             #if there is a command
             else:
@@ -1362,23 +1365,8 @@ class Seren301(RFGenerator):
 
 if __name__ == '__main__':
     instrument = AG0613_old(port='COM12', min_power=0, max_power=600, slot=1)
-    instrument.turnOn()
-    time.sleep(2)
-    instrument.turnOff()
-    time.sleep(2)
-    instrument.turnOn()
-    time.sleep(2)
-    instrument.turnOff()
-    time.sleep(2)
-    instrument.turnOn()
-    time.sleep(2)
-    instrument.turnOff()
-    time.sleep(2)
-    instrument.turnOn()
-    time.sleep(2)
-    instrument.turnOff()
-    time.sleep(2)
-
+    while True:
+        pass
     print('done')
     '''PLC = ArduinoMegaPLC(3)
     RFX = RFX600(PLC,3,1,2,8,0,600,1)
