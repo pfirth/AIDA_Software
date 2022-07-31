@@ -82,6 +82,10 @@ class InputField(GridLayout):
         self.titleLabel.text = tit
         self.fieldButton.popupField.title = tit
 
+    def setColor(self,color):
+        self.titleLabel.color = color
+        print('\n\n\n\n\n\n'+self.titleLabel.text)
+
     def getTitle(self):
         return self.titleLabel.text
 

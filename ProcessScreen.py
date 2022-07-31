@@ -68,7 +68,7 @@ class ProcessScreen(Screen):
 
         self.centergrid = GridLayout(size_hint_y = 1,rows = 1,cols = 3)
 
-        self.mfcgridrows = 15
+        self.mfcgridrows = 17
         self.mfcgrid = GridLayout(rows = self.mfcgridrows, cols = 1)
 
         #Set and read Labels

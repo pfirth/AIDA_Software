@@ -635,6 +635,7 @@ for row in df.iterrows(): #iterate through each row of the excel file and adds i
         GasMFCList.append(m)
         MFCList.append(m)
         MainScreen.inputFieldList[r['slot']].setTitle(r['title'])
+        MainScreen.inputFieldList[r['slot']].setColor([0,1,0,1])
         MainScreen.inputFieldList[r['slot']].setMinMax(min = float(r['min']),max = float(r['max']))
 
     if r['type'] == 'AnalogMFC':
@@ -643,6 +644,7 @@ for row in df.iterrows(): #iterate through each row of the excel file and adds i
 
         MFCList.append(m)
         MainScreen.inputFieldList[r['slot']].setTitle(r['title'])
+        MainScreen.inputFieldList[r['slot']].setColor([0, 1, 0, 1])
         MainScreen.inputFieldList[r['slot']].setMinMax(min=float(r['min']), max=float(r['max']))
 
     if r['type'] == 'HoribaLF':
@@ -659,6 +661,7 @@ for row in df.iterrows(): #iterate through each row of the excel file and adds i
         LFCList.append(m)
         MFCList.append(m)
         MainScreen.inputFieldList[r['slot']].setTitle(r['title'])
+        MainScreen.inputFieldList[r['slot']].setColor([0,0,1,1])
         MainScreen.inputFieldList[r['slot']].setMinMax(min = float(r['min']),max = float(r['max']))
 
     if r['type'] == 'RFX600':
@@ -667,6 +670,7 @@ for row in df.iterrows(): #iterate through each row of the excel file and adds i
                             r['relay address'],r['min'],r['max'],r['slot'])
         RFGenList.append(instrument)
         MainScreen.inputFieldList[r['slot']].setTitle(r['title'])
+        MainScreen.inputFieldList[r['slot']].setColor([1,0,0,1])
         MainScreen.inputFieldList[r['slot']].setMinMax(min = float(r['min']),max = float(r['max']))
 
     if r['type'] == 'TCPower':
@@ -674,6 +678,7 @@ for row in df.iterrows(): #iterate through each row of the excel file and adds i
         instrument = TCPowerRFGenrator(port = COM, min_power=int(r['min']), max_power=int(r['max']),slot = r['slot'])
         RFGenList.append(instrument)
         MainScreen.inputFieldList[r['slot']].setTitle(r['title'])
+        MainScreen.inputFieldList[r['slot']].setColor([1,0,0,1])
         MainScreen.inputFieldList[r['slot']].setMinMax(min = float(r['min']),max = float(r['max']))
 
     if r['type'] == 'AG0613_old':
@@ -681,6 +686,7 @@ for row in df.iterrows(): #iterate through each row of the excel file and adds i
         instrument = AG0613_old(port=COM, min_power=int(r['min']), max_power=int(r['max']), slot=r['slot'])
         RFGenList.append(instrument)
         MainScreen.inputFieldList[r['slot']].setTitle(r['title'])
+        MainScreen.inputFieldList[r['slot']].setColor([1,0,0,1])
         MainScreen.inputFieldList[r['slot']].setMinMax(min=float(r['min']), max=float(r['max']))
 
     if r['type'] == 'Pneumatic':
@@ -688,17 +694,17 @@ for row in df.iterrows(): #iterate through each row of the excel file and adds i
 
     if r['type'] == 'GateValve':
         print(r['read address'])
-        gateValve = gateValveOnly(PLC,int(r['read address'].split(',')[0]),
-                            int(r['read address'].split(',')[1]))
+        gateValve = gateValveOnly(PLC, int(r['read address'].split(',')[0]),
+                                  int(r['read address'].split(',')[1]))
 
     if r['type'] == 'ButterflyValve':
 
         if r['title'] == 'MKS153D':
-
-            gateValve = MKS153D(r['Com'],r['max'])
+            gateValve = MKS153D(r['Com'], r['max'])
 
         if r['title'] == 'whatever the VAT model numebr is':
             pass
+
 
     if r['type'] == 'AnalogBaratron':
         instrument = analogBaratron(PLC,int(r['read address']),r['min'],r['max'],r['slot'])
