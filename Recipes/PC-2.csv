@@ -1,0 +1,19 @@
+Type,Slot,Des,Val
+P,0,1% SiH4 (A),1000.0
+P,1,He (A),6000.0
+P,2,CDA (A),6000.0
+P,3,N2 (A),0.0
+P,4,H2O (A),4.0
+P,5,RF (A),100.0
+P,6,Unused,0.0
+P,7,TTIP (B),0.0
+P,8,N2-Vap (B),0.0
+P,9,He (B),0.0
+P,10,RF (B),0.0
+P,11,Unused,0.0
+P,12,Bottom Pressure,0.0
+P,13,Top Pressure,0.0
+M,0,speed,84
+M,1,swipes,8
+M,2,start,0
+M,3,stop,1350
