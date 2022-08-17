@@ -1,7 +1,7 @@
 slot,type,Com,write address,read address,relay address,title,min,max
 -1,ArduinoPLC,3,-1,-1,-1,-1,-1,-1
 -1,ArduinoMotor,10,-1,-1,-1,-1,-1,-1
-0,HoribaZ500,6,3031,3031,18,1% SiH4 (A),0,10000
+0,HoribaZ500,6,3031,3031,18,1% SiH4 (A),0,3000
 1,HoribaZ500,6,3032,3032,17,He (A),0,50000
 2,HoribaZ500,6,3033,3033,14,CDA (A),0,30000
 3,HoribaZ500,6,3034,3034,11,N2 (A),0,30000

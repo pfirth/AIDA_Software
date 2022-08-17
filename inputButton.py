@@ -168,7 +168,7 @@ class TextInputButton(Button):
             D = str(datetime.datetime.now())
             D = D.split(' ')[0]
             Y, M, D = D.split('-')
-            ID = 'PF' + Y[2:] + M + D + '-'
+            ID = 'SC501' + Y[2:] + M + D + '-'
             self.sampleIDText = ID
         else:
             self.sampleID = False
@@ -231,7 +231,7 @@ class TextInputButton(Button):
             D = str(datetime.datetime.now())
             D = D.split(' ')[0]
             Y, M, D = D.split('-')
-            ID = 'PF' + Y[2:] + M + D + '-'
+            ID = 'SC501' + Y[2:] + M + D + '-'
             self.sampleIDText = ID
         else:
             #self.popUpTextInput = TextInput(font_size=35, multiline=False)

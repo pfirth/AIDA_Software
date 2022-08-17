@@ -341,7 +341,7 @@ class ProcessScreen(Screen):
 
         try:
             sheet = client.open_by_key(sheetID)
-            sheet = sheet.worksheet('SC501')
+            sheet = sheet.worksheet('VA_SIO2_SC501')
             print('successfully connected to sheet')
             self.uploadParametersButton.text = 'Save to Sheets\n(Successful Connection)'
             self.setParameterDictionary['sheet'] = sheet
